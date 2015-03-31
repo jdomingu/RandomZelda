@@ -13,46 +13,49 @@
         this.height = 600; // Same
         this.roomSize = 25;
         this.innerRoomSize = this.roomSize / 2;
-        this.roomsArray = [];
 
-        this.generate(this.roomsArray, numRooms, startRoom);
-        this.draw(this.roomsArray);
+        this.draw(this.generate([startRoom], numRooms, startRoom));
     };
 
     Map.prototype = {
 
         generate: function (roomsArray, numRooms, currentRoom) {
-            if (roomsArray.length < numRooms) {
-                var availableRoomCoords = this.getAdjacent(roomsArray, numRooms, currentRoom),
-                    nextRoomCoords = this.getRandomRoomCoords(availableRoomCoords),
-                    nextRoom = this.getRoomIfExists(roomsArray, nextRoomCoords);
-
-                if (typeof nextRoom === 'undefined') {
-                    nextRoom = new Room(nextRoomCoords[0], nextRoomCoords[1]);
-                    roomsArray.push(nextRoom);
-                } 
-
-                this.generate(roomsArray, numRooms, nextRoom);
+			// Base case
+            if (roomsArray.length >= numRooms) {
+                return roomsArray;
             }
             
-            return roomsArray;
+			// Recursive case
+            var availableRoomCoords = this.getAdjacent(currentRoom),
+                roomCoords = this.getRandomRoomCoords(availableRoomCoords),
+				nextRoom = new Room(roomCoords[0], roomCoords[1]);
+
+            if (!this.roomExists(roomsArray, roomCoords)) {
+				// Add if it wasn't already there
+                roomsArray.push(nextRoom);
+            }
+			// Use it as the next stop regardless
+            return roomsArray.concat(this.generate(roomsArray, numRooms, nextRoom));
         },
 
-        getRoomIfExists: function (roomsArray, nextRoomCoords) {
+        roomExists: function (roomsArray, nextRoomCoords) {
             var roomsArrayLength = roomsArray.length;
+
+            if (roomsArrayLength == 0) {
+                return true;
+            }
 
             for (var i = 0; i < roomsArrayLength; i++) {
                 if (nextRoomCoords[0] === roomsArray[i].x && 
                         nextRoomCoords[1] === roomsArray[i].y) {
-                    return roomsArray[i];
+                    return true;
                 }
             }
-
+            return false;
         },
 
-        getAdjacent: function (roomsArray, numRooms, currentRoom) {
-            var roomsArrayLength = roomsArray.length,
-                maxDistance = Math.floor(24 / 2),
+        getAdjacent: function (currentRoom) {
+            var maxDistance = Math.floor(24 / 2),
                 availableRoomCoords = [];
 
             var adjacentRoomCoords = [[currentRoom.x + 1, currentRoom.y], 
@@ -86,7 +89,7 @@
             var canvas = document.getElementById('map'),
                 context = canvas.getContext('2d');
        
-
+            // Fill every visited node
             for (var i = 0; i < roomsArray.length; i++) {
                 var coords = this.convertRoomCoordsToPixels(roomsArray[i]),
                     x = coords[0],
@@ -96,19 +99,35 @@
                 context.fillRect (x, y, this.roomSize, this.roomSize);
                 context.fillStyle = '#333333';
 
-                if (i === 0) { // Set the start room to green
-                    context.fillStyle = '#88d800';
-                }
-
-                if (i === roomsArray.length - 1) { // Set the end room to red
-                    context.fillStyle = '#b53120';
-                }
-
                 context.fillRect (x + (this.roomSize / 4), 
                     y + (this.roomSize / 4), 
                     this.innerRoomSize, 
                     this.innerRoomSize);
             }
+			
+			var coords = this.convertRoomCoordsToPixels(roomsArray[0]),
+				x = coords[0],
+				y = coords[1];
+
+			// Set the start room to green
+			context.fillStyle = '#88d800';
+
+			context.fillRect (x + (this.roomSize / 4), 
+				y + (this.roomSize / 4), 
+				this.innerRoomSize, 
+				this.innerRoomSize);
+
+			coords = this.convertRoomCoordsToPixels(roomsArray[roomsArray.length - 1]);
+			x = coords[0];
+			y = coords[1];
+				
+			// Set the end room to red
+			context.fillStyle = '#b53120';
+
+			context.fillRect (x + (this.roomSize / 4), 
+				y + (this.roomSize / 4), 
+				this.innerRoomSize, 
+				this.innerRoomSize);
         }
     };
     window.onload = function () {
