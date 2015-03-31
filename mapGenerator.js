@@ -20,21 +20,21 @@
     Map.prototype = {
 
         generate: function (roomsArray, numRooms, currentRoom) {
-			// Base case
+            // Base case
             if (roomsArray.length >= numRooms) {
                 return roomsArray;
             }
             
-			// Recursive case
+            // Recursive case
             var availableRoomCoords = this.getAdjacent(currentRoom),
                 roomCoords = this.getRandomRoomCoords(availableRoomCoords),
-				nextRoom = new Room(roomCoords[0], roomCoords[1]);
+                nextRoom = new Room(roomCoords[0], roomCoords[1]);
 
             if (!this.roomExists(roomsArray, roomCoords)) {
-				// Add if it wasn't already there
+                // Add if it wasn't already there
                 roomsArray.push(nextRoom);
             }
-			// Use it as the next stop regardless
+            // Use it as the next stop regardless
             return roomsArray.concat(this.generate(roomsArray, numRooms, nextRoom));
         },
 
@@ -104,30 +104,30 @@
                     this.innerRoomSize, 
                     this.innerRoomSize);
             }
-			
-			var coords = this.convertRoomCoordsToPixels(roomsArray[0]),
-				x = coords[0],
-				y = coords[1];
+            
+            var coords = this.convertRoomCoordsToPixels(roomsArray[0]),
+                x = coords[0],
+                y = coords[1];
 
-			// Set the start room to green
-			context.fillStyle = '#88d800';
+            // Set the start room to green
+            context.fillStyle = '#88d800';
 
-			context.fillRect (x + (this.roomSize / 4), 
-				y + (this.roomSize / 4), 
-				this.innerRoomSize, 
-				this.innerRoomSize);
+            context.fillRect (x + (this.roomSize / 4), 
+                y + (this.roomSize / 4), 
+                this.innerRoomSize, 
+                this.innerRoomSize);
 
-			coords = this.convertRoomCoordsToPixels(roomsArray[roomsArray.length - 1]);
-			x = coords[0];
-			y = coords[1];
-				
-			// Set the end room to red
-			context.fillStyle = '#b53120';
+            coords = this.convertRoomCoordsToPixels(roomsArray[roomsArray.length - 1]);
+            x = coords[0];
+            y = coords[1];
+                
+            // Set the end room to red
+            context.fillStyle = '#b53120';
 
-			context.fillRect (x + (this.roomSize / 4), 
-				y + (this.roomSize / 4), 
-				this.innerRoomSize, 
-				this.innerRoomSize);
+            context.fillRect (x + (this.roomSize / 4), 
+                y + (this.roomSize / 4), 
+                this.innerRoomSize, 
+                this.innerRoomSize);
         }
     };
     window.onload = function () {
