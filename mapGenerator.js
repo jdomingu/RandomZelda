@@ -56,7 +56,7 @@
         },
 
         getAdjacent: function (currentRoom) {
-            var maxDistance = Math.floor(24 / 2),
+            var maxDistance = Math.floor((this.width / this.roomSize) / 2),
                 availableRoomCoords = [];
 
             var adjacentRoomCoords = [[currentRoom.x + 1, currentRoom.y], 
