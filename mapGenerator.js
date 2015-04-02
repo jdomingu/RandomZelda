@@ -6,13 +6,12 @@
     };
 
     var Map = function () {
-        var numRooms = 35,
-            startRoom = new Room(0, 0);
-
+        // Declare map preferences
         this.canvas = document.getElementById('map');
         this.context = this.canvas.getContext('2d');
         this.width = 600; // Ensure this matches width of canvas tag
         this.height = 600; // Same
+        this.numRooms = 20;
         this.roomSize = 25;
         this.innerRoomSize = this.roomSize / 2;
         this.defaultRoomColor = '#333333';
@@ -20,13 +19,23 @@
         this.endRoomColor = '#b53120';
         this.roomBG = '#000000';
 
-        this.draw(this.generate([startRoom], numRooms, startRoom));
+        // Generate the map
+        // NOTE: This section is messy right now to make it easier to visualize 
+        // core rooms for testing
+        var startRoom = new Room(0, 0);
+        var coreRoomsArray = this.generate([startRoom], this.numRooms / 2, startRoom);
+        var roomsArray = coreRoomsArray.slice(0);
+        roomsArray = this.generateBranches(roomsArray, this.numRooms / 2);
+        console.log(roomsArray.length);
+        console.log(coreRoomsArray.length);
+        this.draw(roomsArray, this.defaultRoomColor);
+        this.draw(coreRoomsArray, '#FCB514');
     };
 
     Map.prototype = {
 
         generate: function (roomsArray, numRooms, currentRoom) {
-
+        // Walk a random path, generating rooms as you go.
             if (roomsArray.length >= numRooms) { // Base case
                 return roomsArray;
             } else { // Recursive case
@@ -44,6 +53,29 @@
 
                 return this.generate(roomsArray, numRooms, nextRoom);
             }
+        },
+
+        generateBranches: function (coreRooms, numRooms) {
+            // Generate branches of a random length less than the number
+            // of rooms remaining until there are no more rooms to create.
+            // Branches greatly minimize the problem of long, single-room stretches.
+            var allRooms = coreRooms.slice(0), // Make a copy
+                roomsRemaining = numRooms;
+
+            for (var i = 0; i < numRooms; i++) {
+                var randomRoom = this.getRandomRoom(coreRooms), 
+                    branchLength = Math.ceil(Math.random() * (roomsRemaining / 2));
+                    // Dividing by two yields better results by minimizing long branches
+
+                allRooms = this.generate(allRooms, allRooms.length + branchLength, randomRoom);
+                roomsRemaining = roomsRemaining - branchLength;
+            }
+
+            return allRooms;
+        },
+
+        getRandomRoom: function (roomsArray) {
+            return roomsArray[Math.floor(Math.random() * roomsArray.length)];
         },
 
         getRoomIndexIfExists: function (roomsArray, nextRoomCoords) {
@@ -83,7 +115,7 @@
         },
 
         getRandomRoomCoords: function (availableRoomCoords) {
-            return availableRoomCoords[Math.floor(Math.random()*availableRoomCoords.length)];
+            return availableRoomCoords[Math.floor(Math.random() * availableRoomCoords.length)];
         },
 
         convertRoomCoordsToPixels: function (roomCoords) {
@@ -92,11 +124,12 @@
             return [x, y];
         },
 
-        draw: function (roomsArray) {
+        draw: function (roomsArray, color) {
             var roomsArrayLength = roomsArray.length;
        
             for (var i = 0; i < roomsArrayLength; i++) {
-                this.drawRoom(roomsArray[i], this.defaultRoomColor);
+                this.drawRoom(roomsArray[i], color);
+                //this.drawRoom(roomsArray[i], this.defaultRoomColor);
             }
            
             this.drawRoom(roomsArray[0], this.startRoomColor);
