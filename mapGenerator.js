@@ -11,8 +11,8 @@
         this.context = this.canvas.getContext('2d');
         this.width = 600; // Ensure this matches width of canvas tag
         this.height = 600; // Same
-        this.numRooms = 20;
-        this.roomSize = 25;
+        this.numRooms = 25;
+        this.roomSize = 40;
         this.innerRoomSize = this.roomSize / 2;
         this.defaultRoomColor = '#333333';
         this.startRoomColor = '#88d800';
@@ -26,8 +26,6 @@
         var coreRoomsArray = this.generate([startRoom], this.numRooms / 2, startRoom);
         var roomsArray = coreRoomsArray.slice(0);
         roomsArray = this.generateBranches(roomsArray, this.numRooms / 2);
-        console.log(roomsArray.length);
-        console.log(coreRoomsArray.length);
         this.draw(roomsArray, this.defaultRoomColor);
         this.draw(coreRoomsArray, '#FCB514');
     };
@@ -39,16 +37,17 @@
             if (roomsArray.length >= numRooms) { // Base case
                 return roomsArray;
             } else { // Recursive case
-                var availableRoomCoords = this.getAdjacent(currentRoom),
-                    roomCoords = this.getRandomRoomCoords(availableRoomCoords),
-                    nextRoomExists = this.getRoomIndexIfExists(roomsArray, roomCoords),
+                var availableRoomCoords = this.getAdjacent(roomsArray, currentRoom),
                     nextRoom;
-                
-                if (nextRoomExists == -1) {
+
+                if (availableRoomCoords.length < 1) {
+                // Sometimes when walking you box yourself in and need to jump
+                // to an existing room to keep going
+                    nextRoom = this.getRandomRoom(roomsArray);
+                } else {
+                    var roomCoords = this.getRandomRoomCoords(availableRoomCoords);
                     nextRoom = new Room(roomCoords[0], roomCoords[1]);
                     roomsArray.push(nextRoom);
-                } else {
-                    nextRoom = roomsArray[nextRoomExists]; 
                 }
 
                 return this.generate(roomsArray, numRooms, nextRoom);
@@ -78,23 +77,21 @@
             return roomsArray[Math.floor(Math.random() * roomsArray.length)];
         },
 
-        getRoomIndexIfExists: function (roomsArray, nextRoomCoords) {
+        roomExists: function (roomsArray, nextRoomCoords) {
             var roomsArrayLength = roomsArray.length;
-
-            if (roomsArrayLength === 0) {
-                return true;
-            }
 
             for (var i = 0; i < roomsArrayLength; i++) {
                 if (nextRoomCoords[0] === roomsArray[i].x && 
                         nextRoomCoords[1] === roomsArray[i].y) {
-                    return i;
+                    return true;
                 }
             }
-            return -1;
-        },
+            return false;
+        }, 
 
-        getAdjacent: function (currentRoom) {
+        getAdjacent: function (roomsArray, currentRoom) {
+        // Get the coordinates of adjacent blank spaces within the bounds
+        // of the map --that is less than a max distance from center
             var maxDistance = Math.floor((this.width / this.roomSize) / 2),
                 availableRoomCoords = [];
 
@@ -105,8 +102,13 @@
              
             for (var i = 0; i < adjacentRoomCoords.length; i++) {
                 var absX = Math.abs(adjacentRoomCoords[i][0]) + 1,
-                    absY = Math.abs(adjacentRoomCoords[i][1]) + 1; 
-                if (absX < maxDistance && absY < maxDistance) {
+                    absY = Math.abs(adjacentRoomCoords[i][1]) + 1,
+                    roomExists = this.roomExists(roomsArray, 
+                            [adjacentRoomCoords[i][0], adjacentRoomCoords[i][1]]);
+                
+                if (absX < maxDistance && 
+                        absY < maxDistance &&
+                        !roomExists) { // Do not push existing rooms
                     availableRoomCoords.push(adjacentRoomCoords[i]);
                 }
             }
