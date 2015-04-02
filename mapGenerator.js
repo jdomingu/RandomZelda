@@ -13,45 +13,46 @@
         this.height = 600; // Same
         this.roomSize = 25;
         this.innerRoomSize = this.roomSize / 2;
-
         this.draw(this.generate([startRoom], numRooms, startRoom));
     };
 
     Map.prototype = {
 
         generate: function (roomsArray, numRooms, currentRoom) {
-            // Base case
-            if (roomsArray.length >= numRooms) {
-                return roomsArray;
-            }
-            
-            // Recursive case
-            var availableRoomCoords = this.getAdjacent(currentRoom),
-                roomCoords = this.getRandomRoomCoords(availableRoomCoords),
-                nextRoom = new Room(roomCoords[0], roomCoords[1]);
 
-            if (!this.roomExists(roomsArray, roomCoords)) {
-                // Add if it wasn't already there
-                roomsArray.push(nextRoom);
+            if (roomsArray.length >= numRooms) { // Base case
+                return roomsArray;
+            } else { // Recursive case
+                var availableRoomCoords = this.getAdjacent(currentRoom),
+                    roomCoords = this.getRandomRoomCoords(availableRoomCoords),
+                    nextRoomExists = this.getRoomIndexIfExists(roomsArray, roomCoords),
+                    nextRoom;
+                
+                if (nextRoomExists == -1) {
+                    nextRoom = new Room(roomCoords[0], roomCoords[1]);
+                    roomsArray.push(nextRoom);
+                } else {
+                    nextRoom = roomsArray[nextRoomExists]; 
+                }
+
+                return this.generate(roomsArray, numRooms, nextRoom);
             }
-            // Use it as the next stop regardless
-            return roomsArray.concat(this.generate(roomsArray, numRooms, nextRoom));
         },
 
-        roomExists: function (roomsArray, nextRoomCoords) {
+        getRoomIndexIfExists: function (roomsArray, nextRoomCoords) {
             var roomsArrayLength = roomsArray.length;
 
-            if (roomsArrayLength == 0) {
+            if (roomsArrayLength === 0) {
                 return true;
             }
 
             for (var i = 0; i < roomsArrayLength; i++) {
                 if (nextRoomCoords[0] === roomsArray[i].x && 
                         nextRoomCoords[1] === roomsArray[i].y) {
-                    return true;
+                    return i;
                 }
             }
-            return false;
+            return -1;
         },
 
         getAdjacent: function (currentRoom) {
@@ -71,7 +72,6 @@
                 }
             }
 
-            console.log(availableRoomCoords.length);
             return availableRoomCoords;
         },
 
