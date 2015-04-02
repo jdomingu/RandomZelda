@@ -9,10 +9,17 @@
         var numRooms = 35,
             startRoom = new Room(0, 0);
 
+        this.canvas = document.getElementById('map');
+        this.context = this.canvas.getContext('2d');
         this.width = 600; // Ensure this matches width of canvas tag
         this.height = 600; // Same
         this.roomSize = 25;
         this.innerRoomSize = this.roomSize / 2;
+        this.defaultRoomColor = '#333333';
+        this.startRoomColor = '#88d800';
+        this.endRoomColor = '#b53120';
+        this.roomBG = '#000000';
+
         this.draw(this.generate([startRoom], numRooms, startRoom));
     };
 
@@ -86,49 +93,30 @@
         },
 
         draw: function (roomsArray) {
-            var canvas = document.getElementById('map'),
-                context = canvas.getContext('2d'),
-                coords,
-                x,
-                y;
+            var roomsArrayLength = roomsArray.length;
        
-            // Fill every visited node
-            for (var i = 0; i < roomsArray.length; i++) {
-                coords = this.convertRoomCoordsToPixels(roomsArray[i]);
-                x = coords[0];
-                y = coords[1];
-                
-                context.fillStyle = '#000000';
-                context.fillRect (x, y, this.roomSize, this.roomSize);
-                context.fillStyle = '#333333';
-
-                context.fillRect (x + (this.roomSize / 4), 
-                    y + (this.roomSize / 4), 
-                    this.innerRoomSize, 
-                    this.innerRoomSize);
+            for (var i = 0; i < roomsArrayLength; i++) {
+                this.drawRoom(roomsArray[i], this.defaultRoomColor);
             }
            
-           // Set the start room to green 
-            coords = this.convertRoomCoordsToPixels(roomsArray[0]);
-            x = coords[0];
-            y = coords[1];
+            this.drawRoom(roomsArray[0], this.startRoomColor);
+            this.drawRoom(roomsArray[roomsArrayLength - 1], this.endRoomColor);
+        },
 
-            context.fillStyle = '#88d800';
-            context.fillRect (x + (this.roomSize / 4), 
-                y + (this.roomSize / 4), 
-                this.innerRoomSize, 
-                this.innerRoomSize);
-
-            // Set the end room to red
-            coords = this.convertRoomCoordsToPixels(roomsArray[roomsArray.length - 1]);
-            x = coords[0];
-            y = coords[1];
+        drawRoom: function (roomToDraw, roomColor) {
+            var coords = this.convertRoomCoordsToPixels(roomToDraw),
+                x = coords[0],
+                y = coords[1];
             
-            context.fillStyle = '#b53120';
-            context.fillRect (x + (this.roomSize / 4), 
+            this.context.fillStyle = this.roomBG;
+            this.context.fillRect (x, y, this.roomSize, this.roomSize);
+            this.context.fillStyle = roomColor;
+
+            this.context.fillRect (x + (this.roomSize / 4), 
                 y + (this.roomSize / 4), 
                 this.innerRoomSize, 
                 this.innerRoomSize);
+
         }
     };
     window.onload = function () {
