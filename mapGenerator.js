@@ -3,6 +3,12 @@
     var Room = function (x, y) {
         this.x = x;
         this.y = y;
+        // Set default values
+        this.roomType = 'open'; // Or 'locked', 'boss'
+        this.upDoor = 'none'; // Or 'open', 'locked'
+        this.downDoor = 'none';
+        this.leftDoor = 'none';
+        this.rightDoor = 'none';
     };
 
     var Map = function () {
@@ -26,6 +32,7 @@
         var coreRoomsArray = this.generate([startRoom], this.numRooms / 2, startRoom);
         var roomsArray = coreRoomsArray.slice(0);
         roomsArray = this.generateBranches(roomsArray, this.numRooms / 2);
+        this.connectRooms(roomsArray);
         this.draw(roomsArray, this.defaultRoomColor);
         this.draw(coreRoomsArray, '#FCB514');
     };
@@ -54,23 +61,45 @@
             }
         },
 
-        generateBranches: function (coreRooms, numRooms) {
+        generateBranches: function (coreRooms, numBranchRooms) {
             // Generate branches of a random length less than the number
             // of rooms remaining until there are no more rooms to create.
             // Branches greatly minimize the problem of long, single-room stretches.
             var allRooms = coreRooms.slice(0), // Make a copy
-                roomsRemaining = numRooms;
+                roomsRemaining = numBranchRooms,
+                branches = []; // Array of branch room arrays
 
-            for (var i = 0; i < numRooms; i++) {
+            for (var i = 0; i < numBranchRooms; i++) {
                 var randomRoom = this.getRandomRoom(coreRooms), 
                     branchLength = Math.ceil(Math.random() * (roomsRemaining / 2));
                     // Dividing by two yields better results by minimizing long branches
 
                 allRooms = this.generate(allRooms, allRooms.length + branchLength, randomRoom);
                 roomsRemaining = roomsRemaining - branchLength;
+                
+                branches[i] = [randomRoom];
+                // Keep track of the entry point for the branch and the recently 
+                // generated branch rooms
+                while (branchLength > 0) {                    
+                    branches[i].push(allRooms[allRooms.length - branchLength]);
+                    branchLength--;
+                }
             }
-
+            
+            this.setLockedBranches(branches);
+            console.log(branches);
             return allRooms;
+        },
+        
+        setLockedBranches: function (branches) {
+            // Only lock some branches
+            var numLockedBranches = this.numRooms / 10;
+            // To Do: Sort by branch length first
+            for (var i = 0; i < numLockedBranches; i++) {
+                for (var j = 0; j < branches[i].length; j++) {
+                    branches[i][j].roomType = 'locked';
+                }
+            }
         },
 
         getRandomRoom: function (roomsArray) {
@@ -125,6 +154,10 @@
             var x = (this.width / 2) + (this.roomSize * roomCoords.x);
             var y = (this.height / 2) + (this.roomSize * roomCoords.y);
             return [x, y];
+        },
+        
+        connectRooms: function (roomsArray) {
+            
         },
 
         draw: function (roomsArray, color) {
