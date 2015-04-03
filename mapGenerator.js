@@ -92,7 +92,8 @@
         getAdjacent: function (roomsArray, currentRoom) {
         // Get the coordinates of adjacent blank spaces within the bounds
         // of the map --that is less than a max distance from center
-            var maxDistance = Math.floor((this.width / this.roomSize) / 2),
+            var maxHeight = Math.floor((this.height / this.roomSize) / 2),
+                maxWidth = Math.floor((this.width / this.roomSize) / 2),
                 availableRoomCoords = [];
 
             var adjacentRoomCoords = [[currentRoom.x + 1, currentRoom.y], 
@@ -106,8 +107,8 @@
                     roomExists = this.roomExists(roomsArray, 
                             [adjacentRoomCoords[i][0], adjacentRoomCoords[i][1]]);
                 
-                if (absX < maxDistance && 
-                        absY < maxDistance &&
+                if (absX < maxWidth && 
+                        absY < maxHeight &&
                         !roomExists) { // Do not push existing rooms
                     availableRoomCoords.push(adjacentRoomCoords[i]);
                 }
