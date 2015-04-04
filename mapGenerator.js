@@ -8,12 +8,28 @@ var Room = function () {
     this.door.right = 'none';
 };
 
+var Coord = function(x, y) {
+    this.x = x;
+    this.y = y;
+};
+
+Coord.prototype = {
+    getAdjacentCoords: function () {
+        return [
+            new Coord(this.x + 1, this.y),
+            new Coord(this.x - 1, this.y),
+            new Coord(this.x, this.y + 1),
+            new Coord(this.x, this.y - 1)
+        ];
+    }
+};
+
 var Map = function (mapElement, mapHeight, mapWidth) {
     this.canvas = mapElement;
     this.context = mapElement.getContext('2d');
 
     // Declare "static" settings
-    this.WIDTH = mapWidth; // Ensure this matches width of canvas tag
+    this.WIDTH = mapWidth; // Ensure this matches width of canvas tagtAdja
     this.HEIGHT = mapHeight; // Same
     this.NUM_ROOMS = 75;
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 3;
@@ -65,7 +81,7 @@ Map.prototype = {
         while (existingLen > 0) {
             existingLen = existingLen - 1;
             roomToDraw = existingRooms[existingLen];
-            roomType =  grid[roomToDraw[0]][roomToDraw[1]].roomType
+            roomType =  grid[roomToDraw.x][roomToDraw.y].roomType
 
             if (roomType === 'seed') {
                 roomColor = this.DEFAULT_ROOM_COLOR;
@@ -81,7 +97,7 @@ Map.prototype = {
         var coords = this.convertRoomCoordsToPixels(roomToDraw),
             x = coords[0],
             y = coords[1],
-            roomType = grid[roomToDraw[0]][roomToDraw[1]].roomType;
+            roomType = grid[roomToDraw.x][roomToDraw.y].roomType;
 
         this.context.fillStyle = this.ROOM_BG;
         this.context.fillRect (x, y, this.ROOM_SIZE, this.ROOM_SIZE);
@@ -97,49 +113,43 @@ Map.prototype = {
     },
 
     drawDoors: function (grid, roomToDraw) {
-
-        var roomDoors = grid[roomToDraw[0]][roomToDraw[1]].door,
+        var roomDoors = grid[roomToDraw.x][roomToDraw.y].door,
             doorCoords = this.convertRoomCoordsToPixels(roomToDraw),
-            x,
-            y;
+            bigDelta = 1 + this.ROOM_SIZE / 4 + this.ROOM_SIZE / 8,
+            smallDelta = this.ROOM_SIZE / 4 + this.ROOM_SIZE / 2;
 
         for (var doorDir in roomDoors) {
+            var coord;
             if (doorDir === 'up') {
-                x = doorCoords[0] + 1 + this.ROOM_SIZE / 4 + this.ROOM_SIZE / 8;
-                y = doorCoords[1];
+                coord = new Coord(doorCoords[0] + bigDelta, doorCoords[1]);
             } else if (doorDir === 'down') {
-                x = doorCoords[0] + 1 + this.ROOM_SIZE / 4 + this.ROOM_SIZE / 8;
-                y = doorCoords[1] + this.ROOM_SIZE / 4 + this.ROOM_SIZE / 2;
+                coord = new Coord(doorCoords[0] + bigDelta, doorCoords[1] + smallDelta);
             } else if (doorDir === 'left') {
-                x = doorCoords[0];
-                y = doorCoords[1] + 1 + this.ROOM_SIZE / 4 + this.ROOM_SIZE / 8;
+                coord = new Coord(doorCoords[0], doorCoords[1] + bigDelta);
             } else if (doorDir === 'right') {
-                x = doorCoords[0] + this.ROOM_SIZE / 4 + this.ROOM_SIZE / 2;
-                y = doorCoords[1] + 1 + this.ROOM_SIZE / 4 + this.ROOM_SIZE / 8;
+                coord = new Coord(doorCoords[0] + smallDelta, doorCoords[1] + bigDelta);
             }
+
             if (roomDoors[doorDir] === 'locked') {
-                this.drawOneDoor([x, y], 'purple');
+                this.drawOneDoor(coord, 'purple');
             } else if (roomDoors[doorDir] === 'open') {
-                this.drawOneDoor([x, y], 'white');
+                this.drawOneDoor(coord, 'white');
             }
         }
     },
 
-    drawOneDoor: function (doorCoords, color) {
-        var x = doorCoords[0],
-            y = doorCoords[1],
-            doorSize = this.ROOM_SIZE / 4;
+    drawOneDoor: function (coord, color) {
+        var doorSize = this.ROOM_SIZE / 4;
 
         this.context.fillStyle = color;
-        this.context.fillRect (x, y, doorSize, doorSize);
-
+        this.context.fillRect (coord.x, coord.y, doorSize, doorSize);
     },
 
     convertRoomCoordsToPixels: function (roomCoords) {
-        var x = this.ROOM_SIZE * roomCoords[0];
-        var y = this.ROOM_SIZE * roomCoords[1];
-
-        return [x, y];
+        return [
+            this.ROOM_SIZE * roomCoords.x,
+            this.ROOM_SIZE * roomCoords.y
+        ];
     }
 };
 
@@ -160,10 +170,13 @@ var Generator = function(map, seed) {
     // This allows us to determinstically test a random process
     this.random = Math.seed(seedVal);
     this.startingCoords = [
-        [map.START_X, map.START_Y],
-        [map.START_X, map.START_Y - 1],
-        [map.START_X, map.START_Y - 2]
+        new Coord(map.START_X, map.START_Y),
+        new Coord(map.START_X, map.START_Y - 1),
+        new Coord(map.START_X, map.START_Y - 2)
     ];
+    this.initialPosition = new Coord(map.START_X, map.START_Y - 2);
+    this.seedRoomCount = map.NUM_SEED_ROOMS;
+    this.branchRoomCount = map.NUM_BRANCH_ROOMS;
 };
 
 Generator.prototype = {
@@ -172,8 +185,8 @@ Generator.prototype = {
         this.yBound = map.NUM_ROWS;
 
         // Start generating rooms (subtract 3 to account for initial rooms)
-        existingRoomCoords = this.makeRooms(map.grid, this.startingCoords, [map.START_X, map.START_Y - 2], map.NUM_SEED_ROOMS);
-        existingRoomCoords = this.makeBranches(map.grid, existingRoomCoords, map.NUM_BRANCH_ROOMS, []);
+        existingRoomCoords = this.makeRooms(map.grid, this.startingCoords, this.initialPosition, this.seedRoomCount);
+        existingRoomCoords = this.makeBranches(map.grid, existingRoomCoords, this.branchRoomCount, []);
 
         return existingRoomCoords;
     },
@@ -185,17 +198,17 @@ Generator.prototype = {
         if (numRoomsRemaining < 1) {
             return existingRoomCoords;
         } else {
-            nextRoomCoords = this.getRandomCoords(grid, existingRoomCoords, coords);
-            grid[nextRoomCoords[0]][nextRoomCoords[1]] = new Room();
-            existingRoomCoords.push([nextRoomCoords[0], nextRoomCoords[1]]);
+            nextRoomCoord = this.getRandomCoords(grid, existingRoomCoords, coords);
+            grid[nextRoomCoord.x][nextRoomCoord.y] = new Room();
+            existingRoomCoords.push(nextRoomCoord);
             numRoomsRemaining = numRoomsRemaining - 1;
 
-            return this.makeRooms(grid, existingRoomCoords, [nextRoomCoords[0], nextRoomCoords[1]], numRoomsRemaining);
+            return this.makeRooms(grid, existingRoomCoords, nextRoomCoord, numRoomsRemaining);
         }
     },
 
     getRandomCoords: function (grid, existingRoomCoords, coords) {
-        var adjCoords = this.getAdjacentCoords(coords[0], coords[1]),
+        var adjCoords = coords.getAdjacentCoords(),
             validCoords = this.getValidCoords(adjCoords),
             newCoords = this.getNewCoords(grid, validCoords);
 
@@ -209,8 +222,7 @@ Generator.prototype = {
     },
 
     getRandomFromArray: function (arr) {
-        var rand = arr[Math.floor(this.random() * arr.length)];
-        return rand;
+        return arr[Math.floor(this.random() * arr.length)];
     },
 
     makeBranches: function (grid, existingRoomCoords, numRoomsRemaining, branches) {
@@ -246,8 +258,8 @@ Generator.prototype = {
             y;
 
         for (var j = 0; j < branchLen; j++) {
-            x = branch[j][0];
-            y = branch[j][1];
+            x = branch[j].x;
+            y = branch[j].y;
 
             if (branchLen < 2) { // Can't lock branches one room long
                 continue;
@@ -257,8 +269,8 @@ Generator.prototype = {
                     grid[x][y].door[lockedDoorDir] = 'locked';
                 }
 
-                x = branch[j + 1][0];
-                y = branch[j + 1][1];
+                x = branch[j + 1].x;
+                y = branch[j + 1].y;
                 lockedDoorDir = this.getDoorDirection(branch[j + 1], branch[j]);
                 if (lockedDoorDir !== 'none') {
                     grid[x][y].door[lockedDoorDir] = 'locked';
@@ -271,13 +283,13 @@ Generator.prototype = {
     },
 
     getDoorDirection: function (roomFrom, roomTo) {
-        if (roomFrom[0] > roomTo[0] && roomFrom[1] === roomTo[1]) {
+        if (roomFrom.x > roomTo.x && roomFrom.y === roomTo.y) {
             return 'left';
-        } else if (roomFrom[0] < roomTo[0] && roomFrom[1] === roomTo[1]) {
+        } else if (roomFrom.x < roomTo.x && roomFrom.y === roomTo.y) {
             return 'right';
-        } else if (roomFrom[1] > roomTo[1] && roomFrom[0] === roomTo[0]) {
+        } else if (roomFrom.y > roomTo.y && roomFrom.x === roomTo.x) {
             return 'up';
-        } else if (roomFrom[1] < roomTo[1] && roomFrom[0] === roomTo[0]) {
+        } else if (roomFrom.y < roomTo.y && roomFrom.x === roomTo.x) {
             return 'down';
         } else {
             return 'none';
@@ -296,82 +308,35 @@ Generator.prototype = {
         }
     },
 
-    getAdjacentCoords: function (x, y) {
-        var adjCoords = [[x + 1, y],
-            [x - 1, y],
-            [x, y + 1],
-            [x, y - 1]];
-
-        return adjCoords;
-    },
-
     getValidCoords: function (coords) {
-        var coordsLen = coords.length,
-            validCoords = [],
-            x,
-            y;
-
-        for (var i = 0; i < coordsLen; i++) {
-            x = coords[i][0];
-            y = coords[i][1];
-
-            if (x >= 0 && x < this.xBound && y >= 0 && y < this.yBound) {
-                validCoords.push(coords[i]);
-            }
-        }
-
-        return validCoords;
+        var that = this;
+        return coords.filter(function (coord) {
+            return ((coord.x >= 0 && coord.x < that.xBound) &&
+                    (coord.y >= 0 && coord.y < that.yBound));
+        });
     },
 
     getNewCoords: function (grid, coords) {
-        var coordsLen = coords.length - 1,
-            newCoords = [],
-            isRoom;
-
-        while (coordsLen >= 0) {
-            isRoom = this.isRoom(grid, coords[coordsLen]);
-
-            if (!isRoom) {
-                newCoords.push(coords[coordsLen]);
-            }
-
-            coordsLen = coordsLen - 1;
-        }
-
-        return newCoords;
+        var that = this;
+        return coords.filter(function (coord) {
+            return !that.isRoom(grid, coord);
+        });
     },
 
     isRoom: function (grid, coord) {
-        if (typeof  grid[coord[0]][coord[1]] !== 'undefined') {
-            return true;
-        } else {
-            return false;
-        }
+        return (typeof grid[coord.x][coord.y] !== 'undefined');
     },
 
-    isSeed: function (grid, coords) {
-        var x = coords[0],
-            y = coords[1];
-
-        if (grid[x][y].roomType === 'seed') {
-            return true;
-        } else {
-            return false;
-        }
+    isSeed: function (grid, coord) {
+        return (grid[coord.x][coord.y].roomType === 'seed');
     },
 
-    isEdge: function (grid, coords) {
-        var x = coords[0],
-            y = coords[1],
-            adjCoords = this.getAdjacentCoords(x, y),
+    isEdge: function (grid, coord) {
+        var adjCoords = coord.getAdjacentCoords(),
             validCoords = this.getValidCoords(adjCoords),
             newCoords = this.getNewCoords(grid, validCoords);
 
-        if (newCoords.length > 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return (newCoords.length > 0);
     }
 };
 
