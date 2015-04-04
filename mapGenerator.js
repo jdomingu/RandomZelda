@@ -17,10 +17,10 @@
         // Declare static settings
         this.WIDTH = 600; // Ensure this matches width of canvas tag
         this.HEIGHT = 600; // Same
-        this.NUM_ROOMS = 500;
+        this.NUM_ROOMS = 75;
         this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 3;
         this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
-        this.ROOM_SIZE = 15;
+        this.ROOM_SIZE = 25;
         this.INNER_ROOM_SIZE = this.ROOM_SIZE / 2;
         this.NUM_ROWS = Math.floor(this.HEIGHT / this.ROOM_SIZE);
         this.NUM_COLUMNS = Math.floor(this.WIDTH / this.ROOM_SIZE);
@@ -118,38 +118,42 @@
                 x,
                 y;
 
-                for (var j = 0; j < branchLen; j++) {
-                    x = branch[j][0];
-                    y = branch[j][1];
-                    
-                    if (branchLen < 2) { // Can't lock branches one room long
-                        continue;
-                        //grid[x][y].roomType = 'branch';
-                    } else if (j === 0) {
-                        lockedDoorDir = this.getDoorDirection(branch[j], branch[j + 1]);            
+            for (var j = 0; j < branchLen; j++) {
+                x = branch[j][0];
+                y = branch[j][1];
+                
+                if (branchLen < 2) { // Can't lock branches one room long
+                    continue;
+                } else if (j === 0) {
+                    lockedDoorDir = this.getDoorDirection(branch[j], branch[j + 1]);         
+                    if (lockedDoorDir !== 'none') {
                         grid[x][y].door[lockedDoorDir] = 'locked';
-                        
-                        x = branch[j + 1][0];
-                        y = branch[j + 1][1];
-                        lockedDoorDir = this.getDoorDirection(branch[j + 1], branch[j]);
-                        grid[x][y].door[lockedDoorDir] = 'locked';
-                        grid[x][y].roomType = 'branch';
-                    } else {
-                        grid[x][y].roomType = 'branch';
                     }
+                    
+                    x = branch[j + 1][0];
+                    y = branch[j + 1][1];
+                    lockedDoorDir = this.getDoorDirection(branch[j + 1], branch[j]);
+                    if (lockedDoorDir !== 'none') {
+                        grid[x][y].door[lockedDoorDir] = 'locked';
+                    }
+                    grid[x][y].roomType = 'branch';
+                } else {
+                    grid[x][y].roomType = 'branch';
                 }
-
+            }
         },
         
         getDoorDirection: function (roomFrom, roomTo) {
-            if (roomFrom[0] > roomTo[0]) {
+            if (roomFrom[0] > roomTo[0] && roomFrom[1] === roomTo[1]) {
                 return 'left';
-            } else if (roomFrom[0] < roomTo[0]) {
+            } else if (roomFrom[0] < roomTo[0] && roomFrom[1] === roomTo[1]) {
                 return 'right';
-            } else if (roomFrom[1] > roomTo[1]) {
+            } else if (roomFrom[1] > roomTo[1] && roomFrom[0] === roomTo[0]) {
                 return 'up';
-            } else if (roomFrom[1] < roomTo[1]) {
+            } else if (roomFrom[1] < roomTo[1] && roomFrom[0] === roomTo[0]) {
                 return 'down';
+            } else {
+                return 'none';
             }
         },
 
@@ -174,20 +178,21 @@
         
         getRandomSeedCoords: function (grid, existingCoords) {
             var randCoords = this.getRandomFromArray(existingCoords),
-                isBranch = this.isBranch(grid, randCoords); 
+                isSeed = this.isSeed(grid, randCoords),
+                isEdge = this.isEdge(grid, randCoords);
 
-            if (!isBranch) {
+            if (isSeed && isEdge) {
                 return randCoords;
             } else {
                 return this.getRandomSeedCoords(grid, existingCoords);
             }
         },
         
-        getAdjacentCoords: function (X, Y) {
-            var adjCoords = [[X + 1, Y], 
-                [X - 1, Y],
-                [X, Y + 1],
-                [X, Y - 1]];
+        getAdjacentCoords: function (x, y) {
+            var adjCoords = [[x + 1, y], 
+                [x - 1, y],
+                [x, y + 1],
+                [x, y - 1]];
 
             return adjCoords;
         },
@@ -236,11 +241,25 @@
             }
         },
         
-        isBranch: function (grid, coords) {
+        isSeed: function (grid, coords) {
             var x = coords[0],
                 y = coords[1];
             
-            if (grid[x][y].roomType === 'branch') {
+            if (grid[x][y].roomType === 'seed') {
+                return true;
+            } else {
+                return false;
+            }
+        },
+        
+        isEdge: function (grid, coords) {
+            var x = coords[0],
+                y = coords[1],
+                adjCoords = this.getAdjacentCoords(x, y),
+                validCoords = this.getValidCoords(adjCoords),
+                newCoords = this.getNewCoords(grid, validCoords);
+                
+            if (newCoords.length > 0) {
                 return true;
             } else {
                 return false;
