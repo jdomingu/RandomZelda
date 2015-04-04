@@ -143,7 +143,22 @@ Map.prototype = {
     }
 };
 
-var Generator = function(map) {
+/**
+ * Monkey-patch the "Math" module to add a seeded PRNG
+ * Taken from: https://stackoverflow.com/a/23304189
+ */
+Math.seed = function(s) {
+    return function() {
+        s = Math.sin(s) * 10000;
+        return s - Math.floor(s);
+    };
+};
+
+var Generator = function(map, seed) {
+    var seedVal = (undefined === seed) ? Date.now() : seed;
+
+    // This allows us to determinstically test a random process
+    this.random = Math.seed(seedVal);
     this.startingCoords = [
         [map.START_X, map.START_Y],
         [map.START_X, map.START_Y - 1],
@@ -194,7 +209,7 @@ Generator.prototype = {
     },
 
     getRandomFromArray: function (arr) {
-        var rand = arr[Math.floor(Math.random() * arr.length)];
+        var rand = arr[Math.floor(this.random() * arr.length)];
         return rand;
     },
 
@@ -210,7 +225,7 @@ Generator.prototype = {
             return existingRoomCoords;
         } else {
             randStart = this.getRandomSeedCoords(grid, existingRoomCoords);
-            branchLen = Math.ceil(Math.random() * maxBranchLen);
+            branchLen = Math.ceil(this.random() * maxBranchLen);
             this.makeRooms(grid, existingRoomCoords, randStart, branchLen);
 
             for (var i = 0; i < branchLen; i++) {
@@ -290,8 +305,6 @@ Generator.prototype = {
         return adjCoords;
     },
 
-    // xBound == this.NUM_COLUMNS
-    // yBound == this.NUM_ROWS
     getValidCoords: function (coords) {
         var coordsLen = coords.length,
             validCoords = [],
