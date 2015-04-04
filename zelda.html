@@ -1,12 +1,17 @@
 <html>
 <head>
     <title>Random Zelda</title>
-
+    <script type='text/javascript' src='mapGenerator.js'></script>
+    <script type="text/javascript">
+    window.onload = function() {
+        var mapElement = document.getElementById('map');
+        drawGraph(mapElement, mapElement.offsetWidth, mapElement.offsetHeight);
+    };
+    </script>
 <head>
 <body>
     <canvas id='map' width='600px' height='600px' style='background: #ea9e22;'>
         <p>The current browser does not support the canvas element.</p>
-    </canvas>        
-    <script type='text/javascript' src='mapGenerator.js'></script>
+    </canvas>
 </body>
 </html>
