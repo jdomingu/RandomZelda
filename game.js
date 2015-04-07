@@ -19,7 +19,7 @@ RZ.Map = function (context, width, height) {
     this.WIDTH = width; 
     this.HEIGHT = height;
     this.NUM_ROOMS = 35;
-    this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 3;
+    this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
     this.ROOM_SIZE = 40;
     this.INNER_ROOM_SIZE = this.ROOM_SIZE / 2;
@@ -33,12 +33,9 @@ RZ.Map = function (context, width, height) {
     this.BRANCH_ROOM_COLOR = '#FCB514';
     this.ROOM_BG = '#000000';
 
-    // Make an empty array of arrays for rooms, then create starting rooms
+    // Make an empty array of arrays for rooms, then create the starting room
     this.grid = this.make2DGrid(this.NUM_ROWS, this.NUM_COLUMNS);
-    var firstRoom = this.grid[this.START_X][this.START_Y - 1] = new RZ.Room(); // Create two rooms to start to
-    var secondRoom = this.grid[this.START_X][this.START_Y - 2] = new RZ.Room(); // ensure that going up is always possible
-    var zeroRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); // Create a fake, inaccessible room to simulate
-    zeroRoom.roomType = 'fake';                                         // the dungeon entrance like Zelda
+    var firstRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
 };
 
 RZ.Map.prototype = {
@@ -145,12 +142,8 @@ RZ.Generator = function(map, seed) {
 
     // This allows us to determinstically test a random process
     this.random = Math.seed(seedVal);
-    this.startingCoords = [
-        new RZ.Coord(map.START_X, map.START_Y),
-        new RZ.Coord(map.START_X, map.START_Y - 1),
-        new RZ.Coord(map.START_X, map.START_Y - 2)
-    ];
-    this.initialPosition = new RZ.Coord(map.START_X, map.START_Y - 2);
+    this.initialPosition = new RZ.Coord(map.START_X, map.START_Y);
+    this.startingCoords = [this.initialPosition];
     this.seedRoomCount = map.NUM_SEED_ROOMS;
     this.branchRoomCount = map.NUM_BRANCH_ROOMS;
 };
