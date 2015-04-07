@@ -74,7 +74,7 @@ RZ.Map.prototype = {
             }
             this.drawRoom(grid, roomToDraw, roomColor);
         }
-        this.drawRoom(grid, existingRooms[1], this.START_ROOM_COLOR);
+        this.drawRoom(grid, existingRooms[0], this.START_ROOM_COLOR);
     },
 
     drawRoom: function (grid, roomToDraw, roomColor) {
