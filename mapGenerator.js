@@ -1,40 +1,27 @@
-var Room = function () {
-    // Set default values
-    this.roomType = 'seed'; // Or 'branch', 'fake', 'boss'
-    this.door = {};
-    this.door.up = 'none';  // Or 'open', 'locked'
-    this.door.down = 'none';
-    this.door.left = 'none';
-    this.door.right = 'none';
+var RZ = RZ || {};
+
+RZ.Game = function (id) {
+    var canvas = document.getElementById(id),
+        context = canvas.getContext('2d'),
+        width = canvas.clientWidth, // Get the width of the canvas element
+        height = canvas.clientHeight, // Same for the height
+        map = new RZ.Map(context, width, height),
+        generator = new RZ.Generator(map),
+        graph = generator.generate(map);
+
+    return map.draw(map.grid, graph);
 };
 
-var Coord = function(x, y) {
-    this.x = x;
-    this.y = y;
-};
+RZ.Map = function (context, width, height) {
+    this.context = context; // The canvas context to which you want to draw
 
-Coord.prototype = {
-    getAdjacentCoords: function () {
-        return [
-            new Coord(this.x + 1, this.y),
-            new Coord(this.x - 1, this.y),
-            new Coord(this.x, this.y + 1),
-            new Coord(this.x, this.y - 1)
-        ];
-    }
-};
-
-var Map = function (mapElement, mapHeight, mapWidth) {
-    this.canvas = mapElement;
-    this.context = mapElement.getContext('2d');
-
-    // Declare "static" settings
-    this.WIDTH = mapWidth; // Ensure this matches width of canvas tagtAdja
-    this.HEIGHT = mapHeight; // Same
-    this.NUM_ROOMS = 75;
+    // Declare static settings
+    this.WIDTH = width; 
+    this.HEIGHT = height;
+    this.NUM_ROOMS = 30;
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 3;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
-    this.ROOM_SIZE = 25;
+    this.ROOM_SIZE = 30;
     this.INNER_ROOM_SIZE = this.ROOM_SIZE / 2;
     this.NUM_ROWS = Math.floor(this.HEIGHT / this.ROOM_SIZE);
     this.NUM_COLUMNS = Math.floor(this.WIDTH / this.ROOM_SIZE);
@@ -48,13 +35,13 @@ var Map = function (mapElement, mapHeight, mapWidth) {
 
     // Make an empty array of arrays for rooms, then create starting rooms
     this.grid = this.make2DGrid(this.NUM_ROWS, this.NUM_COLUMNS);
-    var firstRoom = this.grid[this.START_X][this.START_Y - 1] = new Room(); // Create two rooms to start to start to
-    var secondRoom = this.grid[this.START_X][this.START_Y - 2] = new Room(); // ensure that going up is always possible
-    var zeroRoom = this.grid[this.START_X][this.START_Y] = new Room(); // Create a fake, inaccessible room to simulate
+    var firstRoom = this.grid[this.START_X][this.START_Y - 1] = new RZ.Room(); // Create two rooms to start to start to
+    var secondRoom = this.grid[this.START_X][this.START_Y - 2] = new RZ.Room(); // ensure that going up is always possible
+    var zeroRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); // Create a fake, inaccessible room to simulate
     zeroRoom.roomType = 'fake';                       // the dungeon entrance like Zelda
 };
 
-Map.prototype = {
+RZ.Map.prototype = {
 
     make2DGrid: function (numRows, numColumns) {
         var grid = [];
@@ -73,7 +60,7 @@ Map.prototype = {
         return grid;
     },
 
-    draw: function (grid, existingRooms, colors) {
+    draw: function (grid, existingRooms) {
         var existingLen = existingRooms.length,
             roomType,
             roomColor;
@@ -81,7 +68,7 @@ Map.prototype = {
         while (existingLen > 0) {
             existingLen = existingLen - 1;
             roomToDraw = existingRooms[existingLen];
-            roomType =  grid[roomToDraw.x][roomToDraw.y].roomType
+            roomType =  grid[roomToDraw.x][roomToDraw.y].roomType;
 
             if (roomType === 'seed') {
                 roomColor = this.DEFAULT_ROOM_COLOR;
@@ -121,13 +108,13 @@ Map.prototype = {
         for (var doorDir in roomDoors) {
             var coord;
             if (doorDir === 'up') {
-                coord = new Coord(doorCoords[0] + bigDelta, doorCoords[1]);
+                coord = new RZ.Coord(doorCoords[0] + bigDelta, doorCoords[1]);
             } else if (doorDir === 'down') {
-                coord = new Coord(doorCoords[0] + bigDelta, doorCoords[1] + smallDelta);
+                coord = new RZ.Coord(doorCoords[0] + bigDelta, doorCoords[1] + smallDelta);
             } else if (doorDir === 'left') {
-                coord = new Coord(doorCoords[0], doorCoords[1] + bigDelta);
+                coord = new RZ.Coord(doorCoords[0], doorCoords[1] + bigDelta);
             } else if (doorDir === 'right') {
-                coord = new Coord(doorCoords[0] + smallDelta, doorCoords[1] + bigDelta);
+                coord = new RZ.Coord(doorCoords[0] + smallDelta, doorCoords[1] + bigDelta);
             }
 
             if (roomDoors[doorDir] === 'locked') {
@@ -153,38 +140,26 @@ Map.prototype = {
     }
 };
 
-/**
- * Monkey-patch the "Math" module to add a seeded PRNG
- * Taken from: https://stackoverflow.com/a/23304189
- */
-Math.seed = function(s) {
-    return function() {
-        s = Math.sin(s) * 10000;
-        return s - Math.floor(s);
-    };
-};
-
-var Generator = function(map, seed) {
+RZ.Generator = function(map, seed) {
     var seedVal = (undefined === seed) ? Date.now() : seed;
 
     // This allows us to determinstically test a random process
     this.random = Math.seed(seedVal);
     this.startingCoords = [
-        new Coord(map.START_X, map.START_Y),
-        new Coord(map.START_X, map.START_Y - 1),
-        new Coord(map.START_X, map.START_Y - 2)
+        new RZ.Coord(map.START_X, map.START_Y),
+        new RZ.Coord(map.START_X, map.START_Y - 1),
+        new RZ.Coord(map.START_X, map.START_Y - 2)
     ];
-    this.initialPosition = new Coord(map.START_X, map.START_Y - 2);
+    this.initialPosition = new RZ.Coord(map.START_X, map.START_Y - 2);
     this.seedRoomCount = map.NUM_SEED_ROOMS;
     this.branchRoomCount = map.NUM_BRANCH_ROOMS;
 };
 
-Generator.prototype = {
+RZ.Generator.prototype = {
     generate: function(map) {
         this.xBound = map.NUM_COLUMNS;
         this.yBound = map.NUM_ROWS;
 
-        // Start generating rooms (subtract 3 to account for initial rooms)
         existingRoomCoords = this.makeRooms(map.grid, this.startingCoords, this.initialPosition, this.seedRoomCount);
         existingRoomCoords = this.makeBranches(map.grid, existingRoomCoords, this.branchRoomCount, []);
 
@@ -199,7 +174,7 @@ Generator.prototype = {
             return existingRoomCoords;
         } else {
             nextRoomCoord = this.getRandomCoords(grid, existingRoomCoords, coords);
-            grid[nextRoomCoord.x][nextRoomCoord.y] = new Room();
+            grid[nextRoomCoord.x][nextRoomCoord.y] = new RZ.Room();
             existingRoomCoords.push(nextRoomCoord);
             numRoomsRemaining = numRoomsRemaining - 1;
 
@@ -340,13 +315,37 @@ Generator.prototype = {
     }
 };
 
-var drawGraph = function(element) {
-    var map = new Map(element, element.offsetHeight, element.offsetWidth),
-        generator = new Generator(map);
+RZ.Room = function () {
+    // Set default values
+    this.roomType = 'seed'; // Or 'branch', 'fake', 'boss'
+    this.door = {};
+    this.door.up = 'none';  // Or 'open', 'locked'
+    this.door.down = 'none';
+    this.door.left = 'none';
+    this.door.right = 'none';
+};
 
-    // Generate the graph
-    var graph = generator.generate(map);
+RZ.Coord = function(x, y) {
+    this.x = x;
+    this.y = y;
+};
 
-    // Draw the graph as a map
-    return map.draw(map.grid, graph, map.DEFAULT_ROOM_COLOR);
+RZ.Coord.prototype = {
+    getAdjacentCoords: function () {
+        return [
+            new RZ.Coord(this.x + 1, this.y),
+            new RZ.Coord(this.x - 1, this.y),
+            new RZ.Coord(this.x, this.y + 1),
+            new RZ.Coord(this.x, this.y - 1)
+        ];
+    }
+};
+
+// Patch the Math module to add a seeded PRNG
+// Source: https://stackoverflow.com/a/23304189
+Math.seed = function(s) {
+    return function() {
+        s = Math.sin(s) * 10000;
+        return s - Math.floor(s);
+    };
 };
