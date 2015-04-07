@@ -32,10 +32,11 @@ RZ.Map = function (context, width, height) {
     this.START_X = Math.floor(this.NUM_COLUMNS / 2);
     this.START_Y = Math.floor(this.NUM_ROWS / 2);
     this.START_ROOM_COLOR = '#88d800';
-    this.DEFAULT_ROOM_COLOR = '#333333';
+    this.DEFAULT_ROOM_COLOR = '#444444';
     this.BOSS_ROOM_COLOR = '#b53120';
     this.BRANCH_ROOM_COLOR = '#FCB514';
     this.ROOM_BG = '#000000';
+	this.LOCKED_DOOR_COLOR = '#FFE200';
 
     // Make an empty array of arrays for rooms, then create the starting room
     this.grid = this.make2DGrid(this.NUM_ROWS, this.NUM_COLUMNS);
@@ -123,9 +124,9 @@ RZ.Map.prototype = {
             }
 
             if (roomDoors[doorDir] === 'locked') {
-                this.drawOneDoor(coord, 'purple');
+                this.drawOneDoor(coord, this.LOCKED_DOOR_COLOR);
             } else if (roomDoors[doorDir] === 'open') {
-                this.drawOneDoor(coord, 'white');
+                this.drawOneDoor(coord, this.DEFAULT_ROOM_COLOR);
             }
         }
     },
@@ -236,6 +237,7 @@ RZ.Generator.prototype = {
     lockBranch: function (grid, branch) {
         var branchLen = branch.length,
             lockedDoorDir,
+			openDoorDir,
             x,
             y;
 
@@ -248,40 +250,53 @@ RZ.Generator.prototype = {
             } else if (j === 0) {
                 // Lock the door from the starting seed room to the first branch room
                 lockedDoorDir = this.getDoorDirection(branch[j], branch[j + 1]);
-                if (lockedDoorDir !== 'none') {
-                    grid[x][y].door[lockedDoorDir] = 'locked';
-                }
+				grid[x][y].door[lockedDoorDir] = 'locked';
 
                 // Lock the door in the other direction as well
                 x = branch[j + 1].x;
                 y = branch[j + 1].y;
                 lockedDoorDir = this.getDoorDirection(branch[j + 1], branch[j]);
-                if (lockedDoorDir !== 'none') {
-                    grid[x][y].door[lockedDoorDir] = 'locked';
-                }
-            } else {
+				grid[x][y].door[lockedDoorDir] = 'locked';
+            } else if (j === branchLen - 1) {
                 grid[x][y].roomType = 'branch';
+			} else {
+                grid[x][y].roomType = 'branch';
+                openDoorDir = this.getDoorDirection(branch[j], branch[j + 1]);
+				grid[x][y].door[openDoorDir] = 'open';
+
+				x = branch[j + 1].x;
+                y = branch[j + 1].y;
+                openDoorDir = this.getDoorDirection(branch[j + 1], branch[j]);
+				grid[x][y].door[openDoorDir] = 'open';
+
             }
         }
     },
 
-    // To Do: Will there ever be a case where all branch ends are not viable?
     makeBossRoom: function (grid, existingRoomCoords, branches) {
+	// Convert the last room of the longest branch to the boss room
         var branchLen = branches[0].length,
-            currentLen = existingRoomCoords.length,
-            roomsWithBoss = this.makeRooms(grid, existingRoomCoords, branches[0][branchLen - 1], 1, false),
             bossCoords,
-            bossRoom;
+			bossFoyerCoords,
+			lockedDoorDir;
 
-            if (roomsWithBoss.length > currentLen) {
-                bossCoords = roomsWithBoss[roomsWithBoss.length - 1];
-                grid[bossCoords.x][bossCoords.y].roomType = 'boss';
-                return existingRoomCoords;
-            } else {
-                return this.makeBossRoom(grid, existingRoomCoords, branches.slice(1, branches.length));
-            }
+			if (branchLen > 2) { // Don't convert a one room branch into the boss room
+				bossCoords = branches[0][branchLen - 1];
+				bossFoyerCoords = branches[0][branchLen - 2];
+				grid[bossCoords.x][bossCoords.y].roomType = 'boss';
 
+				// Lock the boss room
+				lockedDoorDir = this.getDoorDirection(bossCoords, bossFoyerCoords);
+				grid[bossCoords.x][bossCoords.y].door[lockedDoorDir] = 'locked';
+				lockedDoorDir = this.getDoorDirection(bossFoyerCoords, bossCoords);
+				grid[bossFoyerCoords.x][bossFoyerCoords.y].door[lockedDoorDir] = 'locked';
+
+				return existingRoomCoords;
+			} else {
+				return this.makeBossRoom(grid, existingRoomCoords, branches.slice(1, branches.length));
+			}
     }, 
+
     getDoorDirection: function (roomFrom, roomTo) {
         if (roomFrom.x > roomTo.x && roomFrom.y === roomTo.y) {
             return 'left';
