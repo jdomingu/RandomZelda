@@ -1,3 +1,7 @@
+/*jshint globalstrict: true*/
+/*jslint browser:true */
+'use strict';
+
 var RZ = RZ || {};
 
 RZ.Game = function (id, seed) {
@@ -60,6 +64,7 @@ RZ.Map.prototype = {
     draw: function (grid, existingRooms) {
         var existingLen = existingRooms.length,
             roomType,
+			roomToDraw,
             roomColor;
 
         while (existingLen > 0) {
@@ -172,7 +177,7 @@ RZ.Generator.prototype = {
 
     makeRooms: function (grid, existingRoomCoords, coords, numRoomsRemaining, jumpsAllowed) {
     // Walk a random path, generating rooms as you go.
-        var nextRoomCoords;
+        var nextRoomCoord;
 
         if (numRoomsRemaining < 1) {
             return existingRoomCoords;
