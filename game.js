@@ -18,7 +18,7 @@ RZ.Map = function (context, width, height) {
     // Declare static settings
     this.WIDTH = width; 
     this.HEIGHT = height;
-    this.NUM_ROOMS = 35;
+    this.NUM_ROOMS = 30;
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
     this.ROOM_SIZE = 40;
@@ -29,7 +29,7 @@ RZ.Map = function (context, width, height) {
     this.START_Y = Math.floor(this.NUM_ROWS / 2);
     this.START_ROOM_COLOR = '#88d800';
     this.DEFAULT_ROOM_COLOR = '#333333';
-    this.END_ROOM_COLOR = '#b53120';
+    this.BOSS_ROOM_COLOR = '#b53120';
     this.BRANCH_ROOM_COLOR = '#FCB514';
     this.ROOM_BG = '#000000';
 
@@ -71,7 +71,10 @@ RZ.Map.prototype = {
                 roomColor = this.DEFAULT_ROOM_COLOR;
             } else if (roomType === 'branch') {
                 roomColor = this.BRANCH_ROOM_COLOR;
+            } else if (roomType === 'boss') {
+                roomColor = this.BOSS_ROOM_COLOR;
             }
+
             this.drawRoom(grid, roomToDraw, roomColor);
         }
         this.drawRoom(grid, existingRooms[0], this.START_ROOM_COLOR);
@@ -146,6 +149,7 @@ RZ.Generator = function(map, seed) {
     this.startingCoords = [this.initialPosition];
     this.seedRoomCount = map.NUM_SEED_ROOMS;
     this.branchRoomCount = map.NUM_BRANCH_ROOMS;
+    this.branches = [];
 };
 
 RZ.Generator.prototype = {
@@ -153,8 +157,15 @@ RZ.Generator.prototype = {
         this.xBound = map.NUM_COLUMNS;
         this.yBound = map.NUM_ROWS;
 
-        existingRoomCoords = this.makeRooms(map.grid, this.startingCoords, this.initialPosition, this.seedRoomCount, true);
+        var existingRoomCoords = this.makeRooms(map.grid, this.startingCoords, this.initialPosition, this.seedRoomCount, true);
         existingRoomCoords = this.makeBranches(map.grid, existingRoomCoords, this.branchRoomCount);
+        this.branches.sort(function (a, b) { // Sort the branches in-place by distance from the start
+            Math.sqrd = (function (x) { return x * x; });
+            var distA = Math.sqrt(Math.sqrd(a[0].x - map.START_X) + Math.sqrd(a[0].y - map.START_Y)),
+                distB = Math.sqrt(Math.sqrd(b[0].x - map.START_X) + Math.sqrd(b[0].y- map.START_Y));
+           return distB - distA;
+        }); 
+        this.makeBossRoom(map.grid, existingRoomCoords, this.branches);
 
         return existingRoomCoords;
     },
@@ -178,7 +189,7 @@ RZ.Generator.prototype = {
                 return existingRoomCoords;
             }
 
-            return this.makeRooms(grid, existingRoomCoords, nextRoomCoord, numRoomsRemaining);
+            return this.makeRooms(grid, existingRoomCoords, nextRoomCoord, numRoomsRemaining, false);
         }
     },
 
@@ -187,6 +198,7 @@ RZ.Generator.prototype = {
     // rooms ensures the map is always solvable. (Keys will be spawned in seed only.)
         var maxBranchLen = (numRoomsRemaining) > 8 ? 8 : (numRoomsRemaining), // 8 is an arbitrary maximum
             currentBranch = [],
+            branches = this.branches,
             currentExistingCoordsLen,
             diffInLen,
             randStart,
@@ -207,9 +219,10 @@ RZ.Generator.prototype = {
             for (var i = 0; i < diffInLen; i++) {
                 currentBranch.push(existingRoomCoords[existingRoomCoords.length - diffInLen + i]);
             }
-            if (diffInLen > 1) {
+            if (diffInLen > 0) {
                 this.lockBranch(grid, currentBranch);
             }
+            branches.push(currentBranch); // Save the branches to know where to put the boss
             return this.makeBranches(grid, existingRoomCoords, numRoomsRemaining - diffInLen);
         }
 
@@ -247,6 +260,23 @@ RZ.Generator.prototype = {
         }
     },
 
+    // To Do: Will there ever be a case where all branch ends are not viable?
+    makeBossRoom: function (grid, existingRoomCoords, branches) {
+        var branchLen = branches[0].length,
+            currentLen = existingRoomCoords.length,
+            roomsWithBoss = this.makeRooms(grid, existingRoomCoords, branches[0][branchLen - 1], 1, false),
+            bossCoords,
+            bossRoom;
+
+            if (roomsWithBoss.length > currentLen) {
+                bossCoords = roomsWithBoss[roomsWithBoss.length - 1];
+                grid[bossCoords.x][bossCoords.y].roomType = 'boss';
+                return existingRoomCoords;
+            } else {
+                return this.makeBossRoom(grid, existingRoomCoords, branches.slice(1, branches.length));
+            }
+
+    }, 
     getDoorDirection: function (roomFrom, roomTo) {
         if (roomFrom.x > roomTo.x && roomFrom.y === roomTo.y) {
             return 'left';
