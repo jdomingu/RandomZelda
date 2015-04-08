@@ -22,7 +22,7 @@ RZ.Map = function (context, width, height) {
     // Declare static settings
     this.WIDTH = width; 
     this.HEIGHT = height;
-    this.NUM_ROOMS = 30;
+    this.NUM_ROOMS = 25;
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
     this.ROOM_SIZE = 40;
@@ -33,7 +33,7 @@ RZ.Map = function (context, width, height) {
     this.START_Y = Math.floor(this.NUM_ROWS / 2);
     this.START_ROOM_COLOR = '#88d800';
     this.DEFAULT_ROOM_COLOR = '#444444';
-    this.BOSS_ROOM_COLOR = '#b53120';
+    this.BOSS_ROOM_COLOR = '#B53120';
     this.BRANCH_ROOM_COLOR = '#FCB514';
     this.ROOM_BG = '#000000';
 	this.LOCKED_DOOR_COLOR = '#FFE200';
@@ -153,8 +153,10 @@ RZ.Generator = function(map, seed) {
     this.random = Math.seed(seedVal);
     this.initialPosition = new RZ.Coord(map.START_X, map.START_Y);
     this.startingCoords = [this.initialPosition];
+	this.edgeCoords = [this.initialPosition];
     this.seedRoomCount = map.NUM_SEED_ROOMS;
     this.branchRoomCount = map.NUM_BRANCH_ROOMS;
+	this.maxBranchLen = Math.floor(map.NUM_ROOMS / 4);
     this.branches = [];
 };
 
@@ -164,7 +166,7 @@ RZ.Generator.prototype = {
         this.yBound = map.NUM_ROWS;
 
         var existingRoomCoords = this.makeRooms(map.grid, this.startingCoords, this.initialPosition, this.seedRoomCount, true);
-        existingRoomCoords = this.makeBranches(map.grid, existingRoomCoords, this.branchRoomCount);
+        existingRoomCoords = this.makeBranches(map.grid, existingRoomCoords, this.branchRoomCount, this.maxBranchLen);
         this.branches.sort(function (a, b) { // Sort the branches in-place by distance from the start
             Math.sqrd = (function (x) { return x * x; });
             var distA = Math.sqrt(Math.sqrd(a[0].x - map.START_X) + Math.sqrd(a[0].y - map.START_Y)),
@@ -183,26 +185,41 @@ RZ.Generator.prototype = {
         if (numRoomsRemaining < 1) {
             return existingRoomCoords;
         } else {
-            nextRoomCoord = this.getRandomCoords(grid, existingRoomCoords, coords, jumpsAllowed);
+            nextRoomCoord = this.getRandomCoords(grid, existingRoomCoords, this.edgeCoords, coords, jumpsAllowed);
 
             // If you get boxed in on a branch, return the existing rooms instead of jumping to 
             // another random room and continuing. This prevents discontinuous branches.
             if (nextRoomCoord !== coords) {
                 grid[nextRoomCoord.x][nextRoomCoord.y] = new RZ.Room();
                 existingRoomCoords.push(nextRoomCoord);
+				this.edgeCoords.push(nextRoomCoord);
+				this.edgeCoords = this.filterEdgeCoords(grid, this.edgeCoords);
                 numRoomsRemaining = numRoomsRemaining - 1;
             } else {
                 return existingRoomCoords;
             }
 
-            return this.makeRooms(grid, existingRoomCoords, nextRoomCoord, numRoomsRemaining, false);
+            return this.makeRooms(grid, existingRoomCoords, nextRoomCoord, numRoomsRemaining, jumpsAllowed);
         }
     },
 
-    makeBranches: function (grid, existingRoomCoords, numRoomsRemaining) {
+	filterEdgeCoords: function (grid, edgeCoords) {
+		var edgeCoordsLen = edgeCoords.length,
+			filteredCoords = [],
+			isEdge;
+
+		for (var i = 0; i < edgeCoordsLen; i++) {
+			if (this.isEdge(grid, edgeCoords[i])) {
+				filteredCoords.push(edgeCoords[i]);	
+			}	
+		}
+		return filteredCoords;
+	},
+
+    makeBranches: function (grid, existingRoomCoords, numRoomsRemaining, absMaxBranchLen) {
     // Use branches to create locked areas on the map. Creating this after the seed
     // rooms ensures the map is always solvable. (Keys will be spawned in seed only.)
-        var maxBranchLen = (numRoomsRemaining) > 8 ? 8 : (numRoomsRemaining), // 8 is an arbitrary maximum
+        var maxBranchLen = numRoomsRemaining > absMaxBranchLen ? absMaxBranchLen : numRoomsRemaining,
             currentBranch = [],
             branches = this.branches,
             currentExistingCoordsLen,
@@ -213,7 +230,7 @@ RZ.Generator.prototype = {
         if (numRoomsRemaining < 1) {
             return existingRoomCoords;
         } else {
-            randStart = this.getRandomSeedCoords(grid, existingRoomCoords); // Get a random room
+            randStart = this.getRandomSeedCoords(grid, existingRoomCoords, this.edgeCoords); // Get a random room
             branchLen = Math.ceil(this.random() * maxBranchLen);
             currentExistingCoordsLen = existingRoomCoords.length;
             currentBranch.push(randStart); // Store the start room to know where to draw the door
@@ -229,7 +246,7 @@ RZ.Generator.prototype = {
                 this.lockBranch(grid, currentBranch);
             }
             branches.push(currentBranch); // Save the branches to know where to put the boss
-            return this.makeBranches(grid, existingRoomCoords, numRoomsRemaining - diffInLen);
+            return this.makeBranches(grid, existingRoomCoords, numRoomsRemaining - diffInLen, absMaxBranchLen);
         }
 
     },
@@ -311,7 +328,7 @@ RZ.Generator.prototype = {
         }
     },
 
-    getRandomCoords: function (grid, existingRoomCoords, coords, jumpsAllowed) {
+    getRandomCoords: function (grid, existingRoomCoords, edgeCoords, coords, jumpsAllowed) {
         var adjCoords = coords.getAdjacentCoords(),
             validCoords = this.getValidCoords(adjCoords),
             newCoords = this.getNewCoords(grid, validCoords);
@@ -319,7 +336,7 @@ RZ.Generator.prototype = {
         if (newCoords.length > 0) {
             return this.getRandomFromArray(newCoords);
         } else if (newCoords.length === 0 && jumpsAllowed) {
-            return this.getRandomCoords(grid, existingRoomCoords, this.getRandomFromArray(existingRoomCoords));
+            return this.getRandomCoords(grid, existingRoomCoords, edgeCoords, this.getRandomFromArray(edgeCoords));
             // Sometimes when walking you box yourself in and need to jump
             // to an existing room to keep going
         } else {
@@ -331,15 +348,15 @@ RZ.Generator.prototype = {
         return arr[Math.floor(this.random() * arr.length)];
     },
 
-    getRandomSeedCoords: function (grid, existingCoords) {
-        var randCoords = this.getRandomFromArray(existingCoords),
-            isSeed = this.isSeed(grid, randCoords),
-            isEdge = this.isEdge(grid, randCoords);
+    getRandomSeedCoords: function (grid, existingCoords, edgeCoords) {
+        var randCoords = this.getRandomFromArray(edgeCoords),
+            isSeed = this.isSeed(grid, randCoords);
+            //isEdge = this.isEdge(grid, randCoords);
 
-        if (isSeed && isEdge) {
+        if (isSeed) {
             return randCoords;
         } else {
-            return this.getRandomSeedCoords(grid, existingCoords);
+            return this.getRandomSeedCoords(grid, existingCoords, edgeCoords);
         }
     },
 
