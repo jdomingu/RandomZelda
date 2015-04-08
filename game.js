@@ -101,7 +101,6 @@ RZ.Map.prototype = {
             this.INNER_ROOM_SIZE,
             this.INNER_ROOM_SIZE);
 
-
         this.drawDoors(grid, roomToDraw);
     },
 
@@ -198,9 +197,9 @@ RZ.Generator.prototype = {
 				this.edgeCoords.push(nextRoomCoord);
 				this.edgeCoords = this.filterEdgeCoords(grid, this.edgeCoords);
                 numRoomsRemaining = numRoomsRemaining - 1;
-            } else {
+                } else {
                 return existingRoomCoords;
-            }
+                }
 
             return this.makeRooms(grid, existingRoomCoords, nextRoomCoord, numRoomsRemaining, jumpsAllowed);
         }
@@ -231,7 +230,6 @@ RZ.Generator.prototype = {
 			openDoorDir,
 			x,
 			y;
-
 		
 		for (var i = 0; i < existingRoomLen; i++) {
 			currentCoord = existingRoomCoords[i];
@@ -320,7 +318,6 @@ RZ.Generator.prototype = {
                 y = branch[j + 1].y;
                 openDoorDir = this.getDoorDirection(branch[j + 1], branch[j]);
 				grid[x][y].door[openDoorDir] = 'open';
-
             }
         }
     },
