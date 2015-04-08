@@ -36,7 +36,7 @@ RZ.Map = function (context, width, height) {
     this.BOSS_ROOM_COLOR = '#B53120';
     this.BRANCH_ROOM_COLOR = '#FCB514';
     this.ROOM_BG = '#000000';
-	this.LOCKED_DOOR_COLOR = '#FFE200';
+    this.LOCKED_DOOR_COLOR = '#FFE200';
 
     // Make an empty array of arrays for rooms, then create the starting room
     this.grid = this.make2DGrid(this.NUM_ROWS, this.NUM_COLUMNS);
@@ -65,7 +65,7 @@ RZ.Map.prototype = {
     draw: function (grid, existingRooms) {
         var existingLen = existingRooms.length,
             roomType,
-			roomToDraw,
+            roomToDraw,
             roomColor;
 
         while (existingLen > 0) {
@@ -109,8 +109,8 @@ RZ.Map.prototype = {
             doorCoords = this.convertRoomCoordsToPixels(roomToDraw),
             bigDelta = 1 + this.ROOM_SIZE / 4 + this.ROOM_SIZE / 8,
             smallDelta = this.ROOM_SIZE / 4 + this.ROOM_SIZE / 2,
-			doorDir,
-			coord;
+            doorDir,
+            coord;
 
         for (doorDir in roomDoors) {
             
@@ -154,10 +154,10 @@ RZ.Generator = function(map, seed) {
     this.random = Math.seed(seedVal);
     this.initialPosition = new RZ.Coord(map.START_X, map.START_Y);
     this.startingCoords = [this.initialPosition];
-	this.edgeCoords = [this.initialPosition];
+    this.edgeCoords = [this.initialPosition];
     this.seedRoomCount = map.NUM_SEED_ROOMS;
     this.branchRoomCount = map.NUM_BRANCH_ROOMS;
-	this.maxBranchLen = Math.floor(map.NUM_ROOMS / 6);
+    this.maxBranchLen = Math.floor(map.NUM_ROOMS / 6);
     this.branches = [];
 };
 
@@ -167,7 +167,7 @@ RZ.Generator.prototype = {
         this.yBound = map.NUM_ROWS;
 
         var existingRoomCoords = this.makeRooms(map.grid, this.startingCoords, this.initialPosition, this.seedRoomCount, true);
-		existingRoomCoords = this.connectSeedRooms(map.grid, existingRoomCoords);
+        existingRoomCoords = this.connectSeedRooms(map.grid, existingRoomCoords);
         existingRoomCoords = this.makeBranches(map.grid, existingRoomCoords, this.branchRoomCount, this.maxBranchLen);
         this.branches.sort(function (a, b) { // Sort the branches in-place by distance from the start
             Math.sqrd = (function (x) { return x * x; });
@@ -194,8 +194,8 @@ RZ.Generator.prototype = {
             if (nextRoomCoord !== coords) {
                 grid[nextRoomCoord.x][nextRoomCoord.y] = new RZ.Room();
                 existingRoomCoords.push(nextRoomCoord);
-				this.edgeCoords.push(nextRoomCoord);
-				this.edgeCoords = this.filterEdgeCoords(grid, this.edgeCoords);
+                this.edgeCoords.push(nextRoomCoord);
+                this.edgeCoords = this.filterEdgeCoords(grid, this.edgeCoords);
                 numRoomsRemaining = numRoomsRemaining - 1;
                 } else {
                 return existingRoomCoords;
@@ -205,49 +205,49 @@ RZ.Generator.prototype = {
         }
     },
 
-	filterEdgeCoords: function (grid, edgeCoords) {
-		var edgeCoordsLen = edgeCoords.length,
-			filteredCoords = [],
-			isEdge;
+    filterEdgeCoords: function (grid, edgeCoords) {
+        var edgeCoordsLen = edgeCoords.length,
+            filteredCoords = [],
+            isEdge;
 
-		for (var i = 0; i < edgeCoordsLen; i++) {
-			if (this.isEdge(grid, edgeCoords[i])) {
-				filteredCoords.push(edgeCoords[i]);	
-			}	
-		}
+        for (var i = 0; i < edgeCoordsLen; i++) {
+            if (this.isEdge(grid, edgeCoords[i])) {
+                filteredCoords.push(edgeCoords[i]); 
+            }   
+        }
 
-		return filteredCoords;
-	},
+        return filteredCoords;
+    },
 
-	connectSeedRooms: function (grid, existingRoomCoords) {
-	// Call before creating branch rooms
-		var existingRoomLen = existingRoomCoords.length,
-			currentCoord,
-			coordsToConnect,
-			adjCoords,
-			validCoords,
-			adjCoord,
-			openDoorDir,
-			x,
-			y;
-		
-		for (var i = 0; i < existingRoomLen; i++) {
-			currentCoord = existingRoomCoords[i];
-			adjCoords = currentCoord.getAdjacentCoords();
+    connectSeedRooms: function (grid, existingRoomCoords) {
+    // Call before creating branch rooms
+        var existingRoomLen = existingRoomCoords.length,
+            currentCoord,
+            coordsToConnect,
+            adjCoords,
+            validCoords,
+            adjCoord,
+            openDoorDir,
+            x,
+            y;
+        
+        for (var i = 0; i < existingRoomLen; i++) {
+            currentCoord = existingRoomCoords[i];
+            adjCoords = currentCoord.getAdjacentCoords();
             validCoords = this.getValidCoords(adjCoords);
-			coordsToConnect = this.getExistingCoords(grid, validCoords);
+            coordsToConnect = this.getExistingCoords(grid, validCoords);
 
-			for (var j = 0; j < coordsToConnect.length; j++) {
-				adjCoord = coordsToConnect[j];
-				x = currentCoord.x;
+            for (var j = 0; j < coordsToConnect.length; j++) {
+                adjCoord = coordsToConnect[j];
+                x = currentCoord.x;
                 y = currentCoord.y;
                 openDoorDir = this.getDoorDirection(currentCoord, adjCoord);
-				grid[x][y].door[openDoorDir] = 'open';
-			}
-		}
+                grid[x][y].door[openDoorDir] = 'open';
+            }
+        }
 
-		return existingRoomCoords;
-	},
+        return existingRoomCoords;
+    },
 
     makeBranches: function (grid, existingRoomCoords, numRoomsRemaining, absMaxBranchLen) {
     // Use branches to create locked areas on the map. Creating this after the seed
@@ -287,7 +287,7 @@ RZ.Generator.prototype = {
     lockBranch: function (grid, branch) {
         var branchLen = branch.length,
             lockedDoorDir,
-			openDoorDir,
+            openDoorDir,
             x,
             y;
 
@@ -300,50 +300,50 @@ RZ.Generator.prototype = {
             } else if (j === 0) {
                 // Lock the door from the starting seed room to the first branch room
                 lockedDoorDir = this.getDoorDirection(branch[j], branch[j + 1]);
-				grid[x][y].door[lockedDoorDir] = 'locked';
+                grid[x][y].door[lockedDoorDir] = 'locked';
 
                 // Lock the door in the other direction as well
                 x = branch[j + 1].x;
                 y = branch[j + 1].y;
                 lockedDoorDir = this.getDoorDirection(branch[j + 1], branch[j]);
-				grid[x][y].door[lockedDoorDir] = 'locked';
+                grid[x][y].door[lockedDoorDir] = 'locked';
             } else if (j === branchLen - 1) {
                 grid[x][y].roomType = 'branch';
-			} else {
+            } else {
                 grid[x][y].roomType = 'branch';
                 openDoorDir = this.getDoorDirection(branch[j], branch[j + 1]);
-				grid[x][y].door[openDoorDir] = 'open';
+                grid[x][y].door[openDoorDir] = 'open';
 
-				x = branch[j + 1].x;
+                x = branch[j + 1].x;
                 y = branch[j + 1].y;
                 openDoorDir = this.getDoorDirection(branch[j + 1], branch[j]);
-				grid[x][y].door[openDoorDir] = 'open';
+                grid[x][y].door[openDoorDir] = 'open';
             }
         }
     },
 
     makeBossRoom: function (grid, existingRoomCoords, branches) {
-	// Convert the last room of the longest branch to the boss room
+    // Convert the last room of the longest branch to the boss room
         var branchLen = branches[0].length,
             bossCoords,
-			bossFoyerCoords,
-			lockedDoorDir;
+            bossFoyerCoords,
+            lockedDoorDir;
 
-			if (branchLen > 2) { // Don't convert a one room branch into the boss room
-				bossCoords = branches[0][branchLen - 1];
-				bossFoyerCoords = branches[0][branchLen - 2];
-				grid[bossCoords.x][bossCoords.y].roomType = 'boss';
+            if (branchLen > 2) { // Don't convert a one room branch into the boss room
+                bossCoords = branches[0][branchLen - 1];
+                bossFoyerCoords = branches[0][branchLen - 2];
+                grid[bossCoords.x][bossCoords.y].roomType = 'boss';
 
-				// Lock the boss room
-				lockedDoorDir = this.getDoorDirection(bossCoords, bossFoyerCoords);
-				grid[bossCoords.x][bossCoords.y].door[lockedDoorDir] = 'locked';
-				lockedDoorDir = this.getDoorDirection(bossFoyerCoords, bossCoords);
-				grid[bossFoyerCoords.x][bossFoyerCoords.y].door[lockedDoorDir] = 'locked';
+                // Lock the boss room
+                lockedDoorDir = this.getDoorDirection(bossCoords, bossFoyerCoords);
+                grid[bossCoords.x][bossCoords.y].door[lockedDoorDir] = 'locked';
+                lockedDoorDir = this.getDoorDirection(bossFoyerCoords, bossCoords);
+                grid[bossFoyerCoords.x][bossFoyerCoords.y].door[lockedDoorDir] = 'locked';
 
-				return existingRoomCoords;
-			} else {
-				return this.makeBossRoom(grid, existingRoomCoords, branches.slice(1, branches.length));
-			}
+                return existingRoomCoords;
+            } else {
+                return this.makeBossRoom(grid, existingRoomCoords, branches.slice(1, branches.length));
+            }
     }, 
 
     getDoorDirection: function (roomFrom, roomTo) {
@@ -407,7 +407,7 @@ RZ.Generator.prototype = {
         });
     },
 
-	getExistingCoords: function (grid, coords) {
+    getExistingCoords: function (grid, coords) {
         var that = this;
         return coords.filter(function (coord) {
             return that.isRoom(grid, coord);
