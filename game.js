@@ -22,7 +22,7 @@ RZ.Map = function (context, width, height) {
     // Declare static settings
     this.WIDTH = width; 
     this.HEIGHT = height;
-    this.NUM_ROOMS = 25;
+    this.NUM_ROOMS = 35;
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
     this.ROOM_SIZE = 40;
@@ -109,10 +109,12 @@ RZ.Map.prototype = {
         var roomDoors = grid[roomToDraw.x][roomToDraw.y].door,
             doorCoords = this.convertRoomCoordsToPixels(roomToDraw),
             bigDelta = 1 + this.ROOM_SIZE / 4 + this.ROOM_SIZE / 8,
-            smallDelta = this.ROOM_SIZE / 4 + this.ROOM_SIZE / 2;
+            smallDelta = this.ROOM_SIZE / 4 + this.ROOM_SIZE / 2,
+			doorDir,
+			coord;
 
-        for (var doorDir in roomDoors) {
-            var coord;
+        for (doorDir in roomDoors) {
+            
             if (doorDir === 'up') {
                 coord = new RZ.Coord(doorCoords[0] + bigDelta, doorCoords[1]);
             } else if (doorDir === 'down') {
@@ -166,6 +168,7 @@ RZ.Generator.prototype = {
         this.yBound = map.NUM_ROWS;
 
         var existingRoomCoords = this.makeRooms(map.grid, this.startingCoords, this.initialPosition, this.seedRoomCount, true);
+		existingRoomCoords = this.connectSeedRooms(map.grid, existingRoomCoords);
         existingRoomCoords = this.makeBranches(map.grid, existingRoomCoords, this.branchRoomCount, this.maxBranchLen);
         this.branches.sort(function (a, b) { // Sort the branches in-place by distance from the start
             Math.sqrd = (function (x) { return x * x; });
@@ -213,7 +216,39 @@ RZ.Generator.prototype = {
 				filteredCoords.push(edgeCoords[i]);	
 			}	
 		}
+
 		return filteredCoords;
+	},
+
+	connectSeedRooms: function (grid, existingRoomCoords) {
+	// Call before creating branch rooms
+		var existingRoomLen = existingRoomCoords.length,
+			currentCoord,
+			coordsToConnect,
+			adjCoords,
+			validCoords,
+			adjCoord,
+			openDoorDir,
+			x,
+			y;
+
+		
+		for (var i = 0; i < existingRoomLen; i++) {
+			currentCoord = existingRoomCoords[i];
+			adjCoords = currentCoord.getAdjacentCoords();
+            validCoords = this.getValidCoords(adjCoords);
+			coordsToConnect = this.getExistingCoords(grid, validCoords);
+
+			for (var j = 0; j < coordsToConnect.length; j++) {
+				adjCoord = coordsToConnect[j];
+				x = currentCoord.x;
+                y = currentCoord.y;
+                openDoorDir = this.getDoorDirection(currentCoord, adjCoord);
+				grid[x][y].door[openDoorDir] = 'open';
+			}
+		}
+
+		return existingRoomCoords;
 	},
 
     makeBranches: function (grid, existingRoomCoords, numRoomsRemaining, absMaxBranchLen) {
@@ -372,6 +407,13 @@ RZ.Generator.prototype = {
         var that = this;
         return coords.filter(function (coord) {
             return !that.isRoom(grid, coord);
+        });
+    },
+
+	getExistingCoords: function (grid, coords) {
+        var that = this;
+        return coords.filter(function (coord) {
+            return that.isRoom(grid, coord);
         });
     },
 
