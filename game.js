@@ -39,22 +39,22 @@ RZ.Map = function (context, width, height) {
     this.LOCKED_DOOR_COLOR = '#FFE200';
 
     // Make an empty array of arrays for rooms, then create the starting room
-    this.grid = this.make2DGrid(this.NUM_ROWS, this.NUM_COLUMNS);
+    this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
     var firstRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
 };
 
 RZ.Map.prototype = {
 
-    make2DGrid: function (numRows, numColumns) {
+    make2DGrid: function (numColumns, numRows) {
         var grid = [];
 
-        while (numRows > 0) {
+        while (numColumns > 0) {
             grid.push([]);
-            numRows = numRows - 1;
+            numColumns = numColumns - 1;
         }
-        for (var i = 0; i < numRows; i++) {
+        for (var i = 0; i < numColumns; i++) {
             grid[i] = [];
-            for (var j = 0; j < numColumns; j++) {
+            for (var j = 0; j < numRows; j++) {
                 grid[i][j] = [];
             }
         }
