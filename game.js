@@ -1,5 +1,5 @@
 /*jshint globalstrict: true*/
-/*jslint browser:true */
+/*jshint browser:true */
 'use strict';
 
 var RZ = RZ || {};
@@ -151,7 +151,7 @@ RZ.Map.prototype = {
 RZ.Generator = function(map, seed) {
     var seedVal = (undefined === seed) ? Date.now() : seed;
 
-    // This allows us to determinstically test a random process
+    // This allows us to deterministically test a random process
     this.random = Math.seed(seedVal);
     this.initialPosition = new RZ.Coord(map.START_X, map.START_Y);
     this.startingCoords = [this.initialPosition];
