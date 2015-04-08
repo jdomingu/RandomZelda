@@ -22,7 +22,7 @@ RZ.Map = function (context, width, height) {
     // Declare static settings
     this.WIDTH = width; 
     this.HEIGHT = height;
-    this.NUM_ROOMS = 35;
+    this.NUM_ROOMS = 35; // The map must be a bare minimum of 6 rooms
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
     this.ROOM_SIZE = 40;
@@ -158,7 +158,7 @@ RZ.Generator = function(map, seed) {
 	this.edgeCoords = [this.initialPosition];
     this.seedRoomCount = map.NUM_SEED_ROOMS;
     this.branchRoomCount = map.NUM_BRANCH_ROOMS;
-	this.maxBranchLen = Math.floor(map.NUM_ROOMS / 4);
+	this.maxBranchLen = Math.floor(map.NUM_ROOMS / 6);
     this.branches = [];
 };
 
@@ -262,11 +262,11 @@ RZ.Generator.prototype = {
             randStart,
             branchLen;
 
-        if (numRoomsRemaining < 1) {
+        if (numRoomsRemaining < 2) {
             return existingRoomCoords;
         } else {
             randStart = this.getRandomSeedCoords(grid, existingRoomCoords, this.edgeCoords); // Get a random room
-            branchLen = Math.ceil(this.random() * maxBranchLen);
+            branchLen = 1 + Math.ceil(this.random() * maxBranchLen);
             currentExistingCoordsLen = existingRoomCoords.length;
             currentBranch.push(randStart); // Store the start room to know where to draw the door
             this.makeRooms(grid, existingRoomCoords, randStart, branchLen, false);
