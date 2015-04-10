@@ -1,0 +1,4 @@
+# Specify files to ignore
+
+node_modules/
+*.swp
