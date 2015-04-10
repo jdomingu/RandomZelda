@@ -150,11 +150,14 @@ RZ.Map.prototype = {
 RZ.Generator = function(map, seed) {
     var seedVal = (undefined === seed) ? Date.now() : seed;
 
-    // This allows us to deterministically test a random process
+    // For testing, use numbers generated from a seed value instead of 
+    // from Math.random so that you can get repeatable results
     this.random = Math.seed(seedVal);
     this.initialPosition = new RZ.Coord(map.START_X, map.START_Y);
     this.startingCoords = [this.initialPosition];
     this.edgeCoords = [this.initialPosition];
+    // Keep track of rooms on the edge that haven't been boxed in
+    // so that you can generate branches on those rooms
     this.seedRoomCount = map.NUM_SEED_ROOMS;
     this.branchRoomCount = map.NUM_BRANCH_ROOMS;
     this.maxBranchLen = Math.floor(map.NUM_ROOMS / 6);
@@ -166,15 +169,20 @@ RZ.Generator.prototype = {
         this.xBound = map.NUM_COLUMNS;
         this.yBound = map.NUM_ROWS;
 
+        // Make a core set of rooms, called seed rooms, and make branches
         var existingRoomCoords = this.makeRooms(map.grid, this.startingCoords, this.initialPosition, this.seedRoomCount, true);
         existingRoomCoords = this.connectSeedRooms(map.grid, existingRoomCoords);
         existingRoomCoords = this.makeBranches(map.grid, existingRoomCoords, this.branchRoomCount, this.maxBranchLen);
-        this.branches.sort(function (a, b) { // Sort the branches in-place by distance from the start
+
+        // Sort the branches in-place by distance from the start
+        this.branches.sort(function (a, b) { 
             Math.sqrd = (function (x) { return x * x; });
             var distA = Math.sqrt(Math.sqrd(a[0].x - map.START_X) + Math.sqrd(a[0].y - map.START_Y)),
                 distB = Math.sqrt(Math.sqrd(b[0].x - map.START_X) + Math.sqrd(b[0].y- map.START_Y));
            return distB - distA;
         }); 
+
+        // Make a boss room at the end of the branch farthest from the start
         this.makeBossRoom(map.grid, existingRoomCoords, this.branches);
 
         return existingRoomCoords;
@@ -197,15 +205,17 @@ RZ.Generator.prototype = {
                 this.edgeCoords.push(nextRoomCoord);
                 this.edgeCoords = this.filterEdgeCoords(grid, this.edgeCoords);
                 numRoomsRemaining = numRoomsRemaining - 1;
-                } else {
+            } else {
                 return existingRoomCoords;
-                }
+            }
 
             return this.makeRooms(grid, existingRoomCoords, nextRoomCoord, numRoomsRemaining, jumpsAllowed);
         }
     },
 
     filterEdgeCoords: function (grid, edgeCoords) {
+    // Filter out rooms that have been boxed in, that is, which have already have
+    // four neighboring rooms
         var edgeCoordsLen = edgeCoords.length,
             filteredCoords = [],
             isEdge;
@@ -220,7 +230,8 @@ RZ.Generator.prototype = {
     },
 
     connectSeedRooms: function (grid, existingRoomCoords) {
-    // Call before creating branch rooms
+    // Create open doors between all seed rooms 
+    // Call this function before creating branch rooms
         var existingRoomLen = existingRoomCoords.length,
             currentCoord,
             coordsToConnect,
@@ -251,7 +262,7 @@ RZ.Generator.prototype = {
 
     makeBranches: function (grid, existingRoomCoords, numRoomsRemaining, absMaxBranchLen) {
     // Use branches to create locked areas on the map. Creating this after the seed
-    // rooms ensures the map is always solvable. (Keys will be spawned in seed only.)
+    // rooms ensures the map is always solvable. (Keys will be spawned in seed rooms only.)
         var maxBranchLen = numRoomsRemaining > absMaxBranchLen ? absMaxBranchLen : numRoomsRemaining,
             currentBranch = [],
             branches = this.branches,
@@ -285,6 +296,8 @@ RZ.Generator.prototype = {
     },
 
     lockBranch: function (grid, branch) {
+    // Given a branch, lock the doors between a given branch and the rest of the map.
+    // Set the room type for each room to 'branch'.
         var branchLen = branch.length,
             lockedDoorDir,
             openDoorDir,
@@ -296,7 +309,7 @@ RZ.Generator.prototype = {
             y = branch[j].y;
 
             if (branchLen < 2) { // Can't lock branches one room long
-                continue;
+                break;
             } else if (j === 0) {
                 // Lock the door from the starting seed room to the first branch room
                 lockedDoorDir = this.getDoorDirection(branch[j], branch[j + 1]);
@@ -330,11 +343,13 @@ RZ.Generator.prototype = {
             lockedDoorDir;
 
             if (branchLen > 2) { // Don't convert a one room branch into the boss room
+            // Remember that the first element of a branch array is a seed room that gets
+            // a locked door added to it
                 bossCoords = branches[0][branchLen - 1];
                 bossFoyerCoords = branches[0][branchLen - 2];
                 grid[bossCoords.x][bossCoords.y].roomType = 'boss';
 
-                // Lock the boss room
+                // Add a locked door to the boss room
                 lockedDoorDir = this.getDoorDirection(bossCoords, bossFoyerCoords);
                 grid[bossCoords.x][bossCoords.y].door[lockedDoorDir] = 'locked';
                 lockedDoorDir = this.getDoorDirection(bossFoyerCoords, bossCoords);
@@ -361,6 +376,8 @@ RZ.Generator.prototype = {
     },
 
     getRandomCoords: function (grid, existingRoomCoords, edgeCoords, coords, jumpsAllowed) {
+    // Get the four coordinates adjacent to a room, check that they are in the bounds of the map,
+    // and filter out the coordinates that are already rooms. 
         var adjCoords = coords.getAdjacentCoords(),
             validCoords = this.getValidCoords(adjCoords),
             newCoords = this.getNewCoords(grid, validCoords);
@@ -371,7 +388,7 @@ RZ.Generator.prototype = {
             return this.getRandomCoords(grid, existingRoomCoords, edgeCoords, this.getRandomFromArray(edgeCoords));
             // Sometimes when walking you box yourself in and need to jump
             // to an existing room to keep going
-        } else {
+        } else { // For branches, do not jump to another room as this would create a discontinuous branch.
             return coords;
         }
     },
@@ -381,9 +398,9 @@ RZ.Generator.prototype = {
     },
 
     getRandomSeedCoords: function (grid, existingCoords, edgeCoords) {
+    // Branches only connect to seed rooms
         var randCoords = this.getRandomFromArray(edgeCoords),
             isSeed = this.isSeed(grid, randCoords);
-            //isEdge = this.isEdge(grid, randCoords);
 
         if (isSeed) {
             return randCoords;
