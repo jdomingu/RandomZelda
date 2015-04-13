@@ -1,10 +1,19 @@
-var gulp = require('gulp');
-var concat = require('gulp-concat');
+var gulp = require('gulp'),
+    concat = require('gulp-concat'),
+    jshint  = require('gulp-jshint'),
+    plumber = require('gulp-plumber'),
+    watch = require('gulp-watch');
 
+var sources  = ['src/game.js', 'src/*.js'];
 gulp.task('default', function() {
-gulp.src(['src/game.js', 'src/*.js'])
-    .pipe(concat('randomzelda.js'))
-    .pipe(gulp.dest('dist/'));
+    gulp.src(sources)
+        .pipe(plumber())
+        .pipe(concat('randomzelda.js'))
+        .pipe(jshint())
+        .pipe(jshint.reporter('default'))
+        .pipe(gulp.dest('dist/'));
 });
 
-// To Do: Add gulp-watch, run js-hint, run tests
+gulp.task('watch', function() {
+    gulp.watch(sources, ['default']);
+});

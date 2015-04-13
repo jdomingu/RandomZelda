@@ -6,9 +6,13 @@
   "dependencies": {},
   "devDependencies": {
     "gulp": "^3.8.11",
-    "gulp-concat": "^2.5.2"
+    "gulp-concat": "^2.5.2",
+    "gulp-jshint": "^1.10.0",
+    "gulp-plumber": "^1.0.0",
+    "gulp-watch": "^4.2.4"
   },
   "scripts": {
-    "start": "gulp"
+    "start": "gulp",
+    "watch": "gulp watch"
   }
 }
