@@ -1,48 +1,18 @@
-RZ.Map = function (context, width, height) {
+RZ.Map = function (dungeon, context) {
     this.context = context; // The canvas context to which you want to draw
 
     // Declare static settings
-    this.WIDTH = width; 
-    this.HEIGHT = height;
-    this.NUM_ROOMS = 35; // The map must be a bare minimum of 6 rooms
-    this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
-    this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
-    this.ROOM_SIZE = 40;
+    this.ROOM_SIZE = dungeon.ROOM_SIZE;
     this.INNER_ROOM_SIZE = this.ROOM_SIZE / 2;
-    this.NUM_ROWS = Math.floor(this.HEIGHT / this.ROOM_SIZE);
-    this.NUM_COLUMNS = Math.floor(this.WIDTH / this.ROOM_SIZE);
-    this.START_X = Math.floor(this.NUM_COLUMNS / 2);
-    this.START_Y = Math.floor(this.NUM_ROWS / 2);
     this.START_ROOM_COLOR = '#88d800';
     this.DEFAULT_ROOM_COLOR = '#444444';
     this.BOSS_ROOM_COLOR = '#B53120';
     this.BRANCH_ROOM_COLOR = '#FCB514';
     this.ROOM_BG = '#000000';
     this.LOCKED_DOOR_COLOR = '#FFE200';
-
-    // Make an empty array of arrays for rooms, then create the starting room
-    this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
-    var firstRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
 };
 
 RZ.Map.prototype = {
-
-    make2DGrid: function (numColumns, numRows) {
-        var grid = [];
-
-        while (numColumns > 0) {
-            grid.push([]);
-            numColumns = numColumns - 1;
-        }
-        for (var i = 0; i < numColumns; i++) {
-            grid[i] = [];
-            for (var j = 0; j < numRows; j++) {
-                grid[i][j] = [];
-            }
-        }
-
-        return grid;
-    },
 
     draw: function (grid, existingRooms) {
         var existingLen = existingRooms.length,

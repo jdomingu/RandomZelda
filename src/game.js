@@ -9,9 +9,9 @@ RZ.Game = function (id, seed) {
         context = canvas.getContext('2d'),
         width = canvas.clientWidth, // Get the width of the canvas element
         height = canvas.clientHeight, // Same for the height
-        map = new RZ.Map(context, width, height),
-        generator = new RZ.Generator(map, seed),
-        graph = generator.generate(map);
+        dungeon = new RZ.Dungeon(width, height, seed),
+        rooms = dungeon.generate(),
+        map = new RZ.Map(dungeon, context);
 
-    return map.draw(map.grid, graph);
+    return map.draw(dungeon.grid, rooms);
 };

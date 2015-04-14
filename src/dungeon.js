@@ -1,17 +1,31 @@
-RZ.Generator = function(map, seed) {
-    var seedVal = (undefined === seed) ? Date.now() : seed;
+RZ.Dungeon = function(width, height, seed) {
+    // Declare static settings
+    this.WIDTH = width; 
+    this.HEIGHT = height;
+    this.ROOM_SIZE = 40;
+    this.NUM_ROOMS = 35; // The map must be a minimum of 6 rooms
+    this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
+    this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
+    this.NUM_ROWS = Math.floor(this.HEIGHT / this.ROOM_SIZE);
+    this.NUM_COLUMNS = Math.floor(this.WIDTH / this.ROOM_SIZE);
+    this.MAX_BRANCH_LEN = Math.floor(this.NUM_ROOMS / 6);
+    this.START_X = Math.floor(this.NUM_COLUMNS / 2);
+    this.START_Y = Math.floor(this.NUM_ROWS / 2);
 
+    // Generate the grid
+    this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
+    var firstRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
+    
     // For testing, use numbers generated from a seed value instead of 
     // from Math.random so that you can get repeatable results
+    var seedVal = (undefined === seed) ? Date.now() : seed;
     this.random = Math.seed(seedVal);
-    this.initialPosition = new RZ.Coord(map.START_X, map.START_Y);
+    this.initialPosition = new RZ.Coord(this.START_X, this.START_Y);
     this.startingCoords = [this.initialPosition];
     this.edgeCoords = [this.initialPosition];
+    
     // Keep track of rooms on the edge that haven't been boxed in
     // so that you can generate branches on those rooms
-    this.seedRoomCount = map.NUM_SEED_ROOMS;
-    this.branchRoomCount = map.NUM_BRANCH_ROOMS;
-    this.maxBranchLen = Math.floor(map.NUM_ROOMS / 6);
     this.branches = [];
 };
 
@@ -24,30 +38,47 @@ Math.seed = function(s) {
     };
 };
 
-RZ.Generator.prototype = {
-    generate: function(map) {
-        this.xBound = map.NUM_COLUMNS;
-        this.yBound = map.NUM_ROWS;
+RZ.Dungeon.prototype = {
+    generate: function() {
+        var that = this;
 
         // Make a core set of rooms, called seed rooms, and make branches
-        var existingRoomCoords = this.makeRooms(map.grid, this.startingCoords, this.initialPosition, this.seedRoomCount, true);
-        existingRoomCoords = this.connectSeedRooms(map.grid, existingRoomCoords);
-        existingRoomCoords = this.makeBranches(map.grid, existingRoomCoords, this.branchRoomCount, this.maxBranchLen);
+        var existingRoomCoords = this.makeRooms(this.grid, this.startingCoords, this.initialPosition, this.NUM_SEED_ROOMS, true);
+        existingRoomCoords = this.connectSeedRooms(this.grid, existingRoomCoords);
+        existingRoomCoords = this.makeBranches(this.grid, existingRoomCoords, this.NUM_BRANCH_ROOMS, this.MAX_BRANCH_LEN);
 
         // Sort the branches in-place by distance from the start
         this.branches.sort(function (a, b) { 
             Math.sqrd = (function (x) { return x * x; });
-            var distA = Math.sqrt(Math.sqrd(a[0].x - map.START_X) + Math.sqrd(a[0].y - map.START_Y)),
-                distB = Math.sqrt(Math.sqrd(b[0].x - map.START_X) + Math.sqrd(b[0].y- map.START_Y));
+            var distA = Math.sqrt(Math.sqrd(a[0].x - that.START_X) + Math.sqrd(a[0].y - that.START_Y)),
+                distB = Math.sqrt(Math.sqrd(b[0].x - that.START_X) + Math.sqrd(b[0].y- that.START_Y));
            return distB - distA;
         }); 
 
         // Make a boss room at the end of the branch farthest from the start
-        this.makeBossRoom(map.grid, existingRoomCoords, this.branches);
+        this.makeBossRoom(this.grid, existingRoomCoords, this.branches);
 
         return existingRoomCoords;
     },
 
+    make2DGrid: function (numColumns, numRows) {
+        // Make an empty 2D grid to hold rooms that get created. 
+        var grid = [];
+
+        while (numColumns > 0) {
+            grid.push([]);
+            numColumns = numColumns - 1;
+        }
+        for (var i = 0; i < numColumns; i++) {
+            grid[i] = [];
+            for (var j = 0; j < numRows; j++) {
+                grid[i][j] = [];
+            }
+        }
+
+        return grid;
+    }, 
+    
     makeRooms: function (grid, existingRoomCoords, coords, numRoomsRemaining, jumpsAllowed) {
     // Walk a random path, generating rooms as you go.
         var nextRoomCoord;
@@ -272,8 +303,8 @@ RZ.Generator.prototype = {
     getValidCoords: function (coords) {
         var that = this;
         return coords.filter(function (coord) {
-            return ((coord.x >= 0 && coord.x < that.xBound) &&
-                    (coord.y >= 0 && coord.y < that.yBound));
+            return ((coord.x >= 0 && coord.x < that.NUM_COLUMNS) &&
+                    (coord.y >= 0 && coord.y < that.NUM_ROWS));
         });
     },
 
