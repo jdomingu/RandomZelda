@@ -4,16 +4,35 @@
 
 var RZ = RZ || {};
 
-RZ.Game = function (id, seed) {
-    var canvas = document.getElementById(id),
-        context = canvas.getContext('2d'),
-        width = canvas.clientWidth, // Get the width of the canvas element
-        height = canvas.clientHeight, // Same for the height
-        dungeon = new RZ.Dungeon(width, height, seed),
-        rooms = dungeon.generate(),
-        map = new RZ.Map(dungeon, context);
+RZ.Game = {
+    init: function (id, seed) {
+        var dungeon, rooms, map;
 
-    return map.draw(dungeon.grid, rooms);
+        RZ.Assets.init(); // Load images
+        RZ.Screen.init(id); // Set up game canvases 
+        RZ.Keyboard.init();
+
+        dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed);
+        rooms = dungeon.generate();
+        map = new RZ.Map(dungeon, RZ.Screen.bg);
+        map.draw(dungeon.grid, rooms);
+        this.player = new RZ.Player();
+
+        this.main();
+    }, 
+
+    main: function () {
+        window.requestAnimationFrame(RZ.Game.main);
+        RZ.Game.player.update(RZ.Screen.fg);
+    }
+
+};
+
+RZ.Assets = {
+    init: function () {
+        this.link = new Image();
+        this.link.src = 'img/link.png';
+    }
 };
 
 RZ.Coord = function(x, y) {
@@ -373,6 +392,46 @@ RZ.Dungeon.prototype = {
     }
 };
 
+RZ.Keyboard = {
+    init: function () {
+        window.onkeydown = function(e) {
+          RZ.Keyboard.states[e.keyCode] = true;
+        };
+
+        window.onkeyup = function(e) {
+          RZ.Keyboard.states[e.keyCode] = false;
+        };
+    },
+
+    states: {},
+
+    codes: {
+        'W': 87,
+        'A': 65,
+        'S': 83,
+        'D': 68,
+        'UP': 38,
+        'LEFT': 37,
+        'DOWN': 40,
+        'RIGHT': 39
+    },
+
+    isDown: function (key) {
+      var keyCode = RZ.Keyboard.codes[key];
+      return RZ.Keyboard.states[keyCode] === true;
+    },
+
+    isAnyKeyDown: function () {
+        for (var key in this.codes) {
+            if (this.states[this.codes[key]] === true) {
+                return true;
+            }
+        }
+
+        return false;
+        } 
+};
+
 RZ.Map = function (dungeon, context) {
     this.context = context; // The canvas context to which you want to draw
 
@@ -474,6 +533,38 @@ RZ.Map.prototype = {
     }
 };
 
+RZ.Player = function () {
+    this.x = 0;
+    this.y = 0;
+    this.sx = 0; // The upper left coordinates of the section of the
+    this.sy = 0; // sprite sheet image to use.
+    this.width = 48;
+    this.height = 48;
+    this.speed = 3;
+};
+
+RZ.Player.prototype = {
+    update: function (context) {
+        context.clearRect(this.x, this.y, this.width, this.height);
+
+        if (RZ.Keyboard.isDown('W') || RZ.Keyboard.isDown('UP')) {
+            this.y -= this.speed;
+            this.sx = 96;
+        } else if (RZ.Keyboard.isDown('A') || RZ.Keyboard.isDown('LEFT')) {
+            this.x -= this.speed;
+            this.sx = 48;
+        } else if (RZ.Keyboard.isDown('S') || RZ.Keyboard.isDown('DOWN')) {
+            this.y += this.speed;
+            this.sx = 0;
+        } else if (RZ.Keyboard.isDown('D') || RZ.Keyboard.isDown('RIGHT')) {
+            this.x += this.speed;
+            this.sx = 144;
+        }
+
+        context.drawImage(RZ.Assets.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
+    }
+};
+
 RZ.Room = function () {
     // Set default values
     this.roomType = 'seed'; // Or 'branch', 'fake', 'boss'
@@ -482,4 +573,20 @@ RZ.Room = function () {
     this.door.down = 'none';
     this.door.left = 'none';
     this.door.right = 'none';
+};
+
+RZ.Screen = {
+    init: function (id) {
+        var fgCanvas = document.getElementById(id),
+            bgCanvas = document.getElementById(id).cloneNode(true);
+
+        bgCanvas.id = 'RZbg';
+        bgCanvas.style.zIndex = -1;
+        document.body.appendChild(bgCanvas);
+
+        this.fg = fgCanvas.getContext('2d');
+        this.bg = bgCanvas.getContext('2d');
+        this.width = fgCanvas.clientWidth; // Get the width of the canvas element
+        this.height = fgCanvas.clientHeight; // and the height
+    }
 };

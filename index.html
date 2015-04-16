@@ -1,15 +1,17 @@
 <html>
 <head>
     <title>Random Zelda</title>
+
+    <link rel='stylesheet' href='css/style.css'>
     <script type='text/javascript' src='dist/randomzelda.js'></script>
-    <script type="text/javascript">
+    <script type='text/javascript'>
         window.onload = function() {
-            var game = new RZ.Game('map'); // Match the parameter to the canvas id 
+            RZ.Game.init('main'); // Match the parameter to the canvas id 
         };
     </script>
 </head>
 <body>
-    <canvas id='map' width='600px' height='600px' style='background: #ea9e22;'>
+    <canvas id='main' width='800px' height='600px'>
         <p>The current browser does not support the canvas element.</p>
     </canvas>
 </body>
