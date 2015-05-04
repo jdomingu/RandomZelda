@@ -8,7 +8,6 @@ RZ.Game = {
     init: function (id, seed) {
         var dungeon, rooms, map;
 
-        RZ.Assets.init(); // Load images
         RZ.Screen.init(id); // Set up game canvases 
         RZ.Keyboard.init();
 
@@ -16,18 +15,19 @@ RZ.Game = {
         rooms = dungeon.generate();
         map = new RZ.Map(dungeon, RZ.Screen.bg);
         map.draw(dungeon.grid, rooms);
-        this.player = new RZ.Player();
+
+        this.player = new RZ.Player(RZ.Screen.fg);
+        RZ.Assets.init(RZ.Game.player.init); // Load images
 
         this.main();
     }, 
 
     main: function () {
-        var fps = 60;
-        setTimeout(function() {
-            window.requestAnimationFrame(RZ.Game.main);
-            RZ.Game.player.update(RZ.Screen.fg);
-            // Drawing code goes here
-        }, 1000 / fps);
+        window.requestAnimationFrame(RZ.Game.main);
+
+        if (RZ.Keyboard.isAnyKeyDown()) {
+            RZ.Game.player.update();
+        }
     }
 
 };
