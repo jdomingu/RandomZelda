@@ -22,8 +22,12 @@ RZ.Game = {
     }, 
 
     main: function () {
-        window.requestAnimationFrame(RZ.Game.main);
-        RZ.Game.player.update(RZ.Screen.fg);
+        var fps = 60;
+        setTimeout(function() {
+            window.requestAnimationFrame(RZ.Game.main);
+            RZ.Game.player.update(RZ.Screen.fg);
+            // Drawing code goes here
+        }, 1000 / fps);
     }
 
 };

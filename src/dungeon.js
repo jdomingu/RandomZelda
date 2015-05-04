@@ -2,7 +2,7 @@ RZ.Dungeon = function(width, height, seed) {
     // Declare static settings
     this.WIDTH = width; 
     this.HEIGHT = height;
-    this.ROOM_SIZE = 40;
+    this.ROOM_SIZE = 96;
     this.NUM_ROOMS = 35; // The map must be a minimum of 6 rooms
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
