@@ -7,7 +7,7 @@ RZ.Map = function (dungeon, context) {
     this.START_ROOM_COLOR = '#88d800';
     this.DEFAULT_ROOM_COLOR = '#444444';
     this.BOSS_ROOM_COLOR = '#B53120';
-    this.BRANCH_ROOM_COLOR = '#FCB514';
+    this.BG = '#FCB514';
     this.ROOM_BG = '#000000';
     this.LOCKED_DOOR_COLOR = '#FFE200';
 };
@@ -20,6 +20,10 @@ RZ.Map.prototype = {
             roomToDraw,
             roomColor;
 
+        // Add a plain background fill
+        this.context.fillStyle = this.BG;
+        this.context.fillRect(0, 0, RZ.Screen.width, RZ.Screen.height);
+        
         while (existingLen > 0) {
             existingLen = existingLen - 1;
             roomToDraw = existingRooms[existingLen];
@@ -28,7 +32,7 @@ RZ.Map.prototype = {
             if (roomType === 'seed') {
                 roomColor = this.DEFAULT_ROOM_COLOR;
             } else if (roomType === 'branch') {
-                roomColor = this.BRANCH_ROOM_COLOR;
+                roomColor = this.BG;
             } else if (roomType === 'boss') {
                 roomColor = this.BOSS_ROOM_COLOR;
             }
@@ -45,10 +49,10 @@ RZ.Map.prototype = {
             roomType = grid[roomToDraw.x][roomToDraw.y].roomType;
 
         this.context.fillStyle = this.ROOM_BG;
-        this.context.fillRect (x, y, this.ROOM_SIZE, this.ROOM_SIZE);
+        this.context.fillRect(x, y, this.ROOM_SIZE, this.ROOM_SIZE);
         this.context.fillStyle = roomColor;
 
-        this.context.fillRect (x + (this.ROOM_SIZE / 4),
+        this.context.fillRect(x + (this.ROOM_SIZE / 4),
             y + (this.ROOM_SIZE / 4),
             this.INNER_ROOM_SIZE,
             this.INNER_ROOM_SIZE);
@@ -88,7 +92,7 @@ RZ.Map.prototype = {
         var doorSize = this.ROOM_SIZE / 4;
 
         this.context.fillStyle = color;
-        this.context.fillRect (coord.x, coord.y, doorSize, doorSize);
+        this.context.fillRect(coord.x, coord.y, doorSize, doorSize);
     },
 
     convertRoomCoordsToPixels: function (roomCoords) {

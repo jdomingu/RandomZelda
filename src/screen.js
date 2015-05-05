@@ -1,15 +1,22 @@
 RZ.Screen = {
     init: function (id) {
-        var fgCanvas = document.getElementById(id),
-            bgCanvas = document.getElementById(id).cloneNode(true);
+        this.fgCanvas = document.getElementById(id);
+        this.bgCanvas = document.getElementById(id).cloneNode(true);
+        this.mapCanvas = document.getElementById(id).cloneNode(true);
 
-        bgCanvas.id = 'RZbg';
-        bgCanvas.style.zIndex = -1;
-        document.body.appendChild(bgCanvas);
+        this.bgCanvas.id = 'RZbg';
+        this.bgCanvas.style.zIndex = -1;
+        document.body.appendChild(this.bgCanvas);
 
-        this.fg = fgCanvas.getContext('2d');
-        this.bg = bgCanvas.getContext('2d');
-        this.width = fgCanvas.clientWidth; // Get the width of the canvas element
-        this.height = fgCanvas.clientHeight; // and the height
+        this.mapCanvas.id = 'RZmap';
+        this.mapCanvas.style.visibility = 'hidden';
+        document.body.appendChild(this.mapCanvas);
+
+        this.fg = this.fgCanvas.getContext('2d');
+        this.bg = this.bgCanvas.getContext('2d');
+        this.map = this.mapCanvas.getContext('2d');
+
+        this.width = this.fgCanvas.clientWidth; // Get the width of the canvas element
+        this.height = this.fgCanvas.clientHeight; // and the height
     }
 };

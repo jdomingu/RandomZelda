@@ -6,15 +6,13 @@ var RZ = RZ || {};
 
 RZ.Game = {
     init: function (id, seed) {
-        var dungeon, rooms, map;
-
         RZ.Screen.init(id); // Set up game canvases 
         RZ.Keyboard.init();
 
-        dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed);
-        rooms = dungeon.generate();
-        map = new RZ.Map(dungeon, RZ.Screen.bg);
-        map.draw(dungeon.grid, rooms);
+        this.dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed);
+        this.rooms = this.dungeon.generate();
+        this.map = new RZ.Map(this.dungeon, RZ.Screen.map);
+        this.map.draw(this.dungeon.grid, this.rooms);
 
         this.player = new RZ.Player(RZ.Screen.fg);
         RZ.Assets.init(RZ.Game.player.init); // Load images
@@ -22,11 +20,17 @@ RZ.Game = {
         this.main();
     }, 
 
+    paused: false,
+
     main: function () {
         window.requestAnimationFrame(RZ.Game.main);
 
-        if (RZ.Keyboard.isAnyKeyDown()) {
-            RZ.Game.player.update();
+        RZ.Keyboard.checkMapToggle();
+
+        if (RZ.Game.paused === false) {
+            if (RZ.Keyboard.areMovementKeysDown()) {
+                RZ.Game.player.update();
+            }
         }
     }
 
@@ -63,7 +67,7 @@ RZ.Dungeon = function(width, height, seed) {
     // Declare static settings
     this.WIDTH = width; 
     this.HEIGHT = height;
-    this.ROOM_SIZE = 96;
+    this.ROOM_SIZE = 36; 
     this.NUM_ROOMS = 35; // The map must be a minimum of 6 rooms
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
@@ -75,7 +79,7 @@ RZ.Dungeon = function(width, height, seed) {
 
     // Generate the grid
     this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
-    var firstRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
+    this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
     
     // For testing, use numbers generated from a seed value instead of 
     // from Math.random so that you can get repeatable results
@@ -408,20 +412,24 @@ RZ.Keyboard = {
 
         window.onkeyup = function(e) {
           RZ.Keyboard.states[e.keyCode] = false;
+          RZ.Keyboard.hasFired[e.keyCode] = false;
         };
+
+        var mapKey = 'SHIFT', // Pressing shift should only toggle 
+            keyCode = RZ.Keyboard.codes[mapKey]; // the map once
+        RZ.Keyboard.hasFired[keyCode] = false;
     },
 
     states: {},
+
+    hasFired: {},
 
     codes: {
         'W': 87,
         'A': 65,
         'S': 83,
         'D': 68,
-        'UP': 38,
-        'LEFT': 37,
-        'DOWN': 40,
-        'RIGHT': 39
+        'SHIFT': 16
     },
 
     isDown: function (key) {
@@ -429,15 +437,40 @@ RZ.Keyboard = {
       return RZ.Keyboard.states[keyCode] === true;
     },
 
-    isAnyKeyDown: function () {
-        for (var key in this.codes) {
-            if (this.states[this.codes[key]] === true) {
+    areMovementKeysDown: function () {
+        var mvmtKeyCodes = ['W', 'A', 'S', 'D'];
+
+        for (var key in mvmtKeyCodes) {
+            var code = this.codes[mvmtKeyCodes[key]];
+
+            if (this.states[code] === true) {
                 return true;
             }
         }
 
         return false;
-        } 
+    },
+
+    checkMapToggle: function () {
+        var mapKey = 'SHIFT',
+            keyCode = RZ.Keyboard.codes[mapKey];
+        
+        if (RZ.Keyboard.isDown(mapKey)) {
+
+            if (RZ.Keyboard.hasFired[keyCode] === false) {
+                RZ.Keyboard.hasFired[keyCode] = true;
+
+                if (RZ.Screen.mapCanvas.style.visibility === 'hidden') {
+                    RZ.Screen.mapCanvas.style.visibility = 'visible';
+                    RZ.Game.paused = true;
+                } else {
+                    RZ.Screen.mapCanvas.style.visibility = 'hidden';
+                    RZ.Game.paused = false;
+                }
+            } 
+        }
+    }
+
 };
 
 RZ.Map = function (dungeon, context) {
@@ -449,7 +482,7 @@ RZ.Map = function (dungeon, context) {
     this.START_ROOM_COLOR = '#88d800';
     this.DEFAULT_ROOM_COLOR = '#444444';
     this.BOSS_ROOM_COLOR = '#B53120';
-    this.BRANCH_ROOM_COLOR = '#FCB514';
+    this.BG = '#FCB514';
     this.ROOM_BG = '#000000';
     this.LOCKED_DOOR_COLOR = '#FFE200';
 };
@@ -462,6 +495,10 @@ RZ.Map.prototype = {
             roomToDraw,
             roomColor;
 
+        // Add a plain background fill
+        this.context.fillStyle = this.BG;
+        this.context.fillRect(0, 0, RZ.Screen.width, RZ.Screen.height);
+        
         while (existingLen > 0) {
             existingLen = existingLen - 1;
             roomToDraw = existingRooms[existingLen];
@@ -470,7 +507,7 @@ RZ.Map.prototype = {
             if (roomType === 'seed') {
                 roomColor = this.DEFAULT_ROOM_COLOR;
             } else if (roomType === 'branch') {
-                roomColor = this.BRANCH_ROOM_COLOR;
+                roomColor = this.BG;
             } else if (roomType === 'boss') {
                 roomColor = this.BOSS_ROOM_COLOR;
             }
@@ -487,10 +524,10 @@ RZ.Map.prototype = {
             roomType = grid[roomToDraw.x][roomToDraw.y].roomType;
 
         this.context.fillStyle = this.ROOM_BG;
-        this.context.fillRect (x, y, this.ROOM_SIZE, this.ROOM_SIZE);
+        this.context.fillRect(x, y, this.ROOM_SIZE, this.ROOM_SIZE);
         this.context.fillStyle = roomColor;
 
-        this.context.fillRect (x + (this.ROOM_SIZE / 4),
+        this.context.fillRect(x + (this.ROOM_SIZE / 4),
             y + (this.ROOM_SIZE / 4),
             this.INNER_ROOM_SIZE,
             this.INNER_ROOM_SIZE);
@@ -530,7 +567,7 @@ RZ.Map.prototype = {
         var doorSize = this.ROOM_SIZE / 4;
 
         this.context.fillStyle = color;
-        this.context.fillRect (coord.x, coord.y, doorSize, doorSize);
+        this.context.fillRect(coord.x, coord.y, doorSize, doorSize);
     },
 
     convertRoomCoordsToPixels: function (roomCoords) {
@@ -543,12 +580,12 @@ RZ.Map.prototype = {
 
 RZ.Player = function (context) {
     this.context = context;
-    this.x = 0;
-    this.y = 0;
+    this.width = 48; // Sprite width and height
+    this.height = 48;
+    this.x = RZ.Screen.width / 2 - this.width / 2; // Starting coordinates
+    this.y = RZ.Screen.height / 2 - this.height / 2;
     this.sx = 0; // The upper left coordinates of the section of the
     this.sy = 0; // sprite sheet image to use (source x and y).
-    this.width = 48;
-    this.height = 48;
     this.speed = 16;
     this.intervalOrig = 3;
     this.interval = 3; // Slow down animation with an interval
@@ -561,6 +598,7 @@ RZ.Player.prototype = {
         var that = RZ.Game.player;
         that.context.drawImage(RZ.Assets.link, that.sx, that.sy, that.width, that.height, that.x, that.y, that.width, that.height);
     },
+
     update: function () {
         if (this.interval > 0) {
             this.interval -= 1;
@@ -575,21 +613,23 @@ RZ.Player.prototype = {
             this.interval = this.intervalOrig;
         }
     },
+
     move: function () {
-        if (RZ.Keyboard.isDown('W') || RZ.Keyboard.isDown('UP')) {
+        if (RZ.Keyboard.isDown('W')) {
             this.y -= this.speed;
             this.sx = 96;
-        } else if (RZ.Keyboard.isDown('A') || RZ.Keyboard.isDown('LEFT')) {
+        } else if (RZ.Keyboard.isDown('A')) {
             this.x -= this.speed;
             this.sx = 48;
-        } else if (RZ.Keyboard.isDown('S') || RZ.Keyboard.isDown('DOWN')) {
+        } else if (RZ.Keyboard.isDown('S')) {
             this.y += this.speed;
             this.sx = 0;
-        } else if (RZ.Keyboard.isDown('D') || RZ.Keyboard.isDown('RIGHT')) {
+        } else if (RZ.Keyboard.isDown('D')) {
             this.x += this.speed;
             this.sx = 144;
         }
     },
+
     keepInBounds: function () {
         var screenWidthMinusPlayer = RZ.Screen.width - this.width,
             screenHeightMinusPlayer = RZ.Screen.height - this.height;
@@ -607,6 +647,7 @@ RZ.Player.prototype = {
             this.y = screenHeightMinusPlayer;
         }
     },
+
     toggleAnimation: function () {
         if (this.animInterval === 0) {
             this.sy = (this.sy === 0 ? 48 : 0);
@@ -629,16 +670,23 @@ RZ.Room = function () {
 
 RZ.Screen = {
     init: function (id) {
-        var fgCanvas = document.getElementById(id),
-            bgCanvas = document.getElementById(id).cloneNode(true);
+        this.fgCanvas = document.getElementById(id);
+        this.bgCanvas = document.getElementById(id).cloneNode(true);
+        this.mapCanvas = document.getElementById(id).cloneNode(true);
 
-        bgCanvas.id = 'RZbg';
-        bgCanvas.style.zIndex = -1;
-        document.body.appendChild(bgCanvas);
+        this.bgCanvas.id = 'RZbg';
+        this.bgCanvas.style.zIndex = -1;
+        document.body.appendChild(this.bgCanvas);
 
-        this.fg = fgCanvas.getContext('2d');
-        this.bg = bgCanvas.getContext('2d');
-        this.width = fgCanvas.clientWidth; // Get the width of the canvas element
-        this.height = fgCanvas.clientHeight; // and the height
+        this.mapCanvas.id = 'RZmap';
+        this.mapCanvas.style.visibility = 'hidden';
+        document.body.appendChild(this.mapCanvas);
+
+        this.fg = this.fgCanvas.getContext('2d');
+        this.bg = this.bgCanvas.getContext('2d');
+        this.map = this.mapCanvas.getContext('2d');
+
+        this.width = this.fgCanvas.clientWidth; // Get the width of the canvas element
+        this.height = this.fgCanvas.clientHeight; // and the height
     }
 };

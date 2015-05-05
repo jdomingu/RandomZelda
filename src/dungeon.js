@@ -2,7 +2,7 @@ RZ.Dungeon = function(width, height, seed) {
     // Declare static settings
     this.WIDTH = width; 
     this.HEIGHT = height;
-    this.ROOM_SIZE = 96;
+    this.ROOM_SIZE = 36; 
     this.NUM_ROOMS = 35; // The map must be a minimum of 6 rooms
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
@@ -14,7 +14,7 @@ RZ.Dungeon = function(width, height, seed) {
 
     // Generate the grid
     this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
-    var firstRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
+    this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
     
     // For testing, use numbers generated from a seed value instead of 
     // from Math.random so that you can get repeatable results
