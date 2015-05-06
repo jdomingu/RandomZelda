@@ -6,16 +6,23 @@ var RZ = RZ || {};
 
 RZ.Game = {
     init: function (id, seed) {
-        RZ.Screen.init(id); // Set up game canvases 
-        RZ.Keyboard.init();
+        var map, rooms;
+        
+        var startDrawing = function () {
+            map.draw(RZ.Game.dungeon.grid, rooms);
+            RZ.Game.currentRoom.draw(RZ.Screen.bgCanvas);
+            RZ.Game.player.init();
+        }; 
+        
+        RZ.Screen.init(id); // Set up canvases
+        RZ.Keyboard.init(); // Start keyboard events
+        RZ.Assets.init(startDrawing); // Load images, then call the startDrawing callback
 
-        this.dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed);
-        this.rooms = this.dungeon.generate();
-        this.map = new RZ.Map(this.dungeon, RZ.Screen.map);
-        this.map.draw(this.dungeon.grid, this.rooms);
-
+        this.dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed); // Create dungeon object
+        rooms = this.dungeon.generate(); // Generate random dungeon
+        map = new RZ.Map(this.dungeon, RZ.Screen.map);
+        this.currentRoom = this.dungeon.startRoom;
         this.player = new RZ.Player(RZ.Screen.fg);
-        RZ.Assets.init(RZ.Game.player.init); // Load images
 
         this.main();
     }, 
@@ -38,11 +45,25 @@ RZ.Game = {
 
 RZ.Assets = {
     init: function (callback) {
-        this.link = new Image();
-        this.link.onload = function () {
-            callback();
+        var loadCount = 2;
+
+        var isDoneLoading = function () {
+            loadCount -= 1;
+            if (loadCount === 0) {
+                callback();
+            }
         };
 
+        this.tiles = new Image();
+        this.tiles.onload = function () {
+            isDoneLoading();
+        };
+        this.tiles.src = 'img/tiles.png';
+
+        this.link = new Image();
+        this.link.onload = function () {
+            isDoneLoading();
+        };
         this.link.src = 'img/link.png';
     }
 };
@@ -65,10 +86,10 @@ RZ.Coord.prototype = {
 
 RZ.Dungeon = function(width, height, seed) {
     // Declare static settings
-    this.WIDTH = width; 
-    this.HEIGHT = height;
-    this.ROOM_SIZE = 36; 
-    this.NUM_ROOMS = 35; // The map must be a minimum of 6 rooms
+    this.WIDTH = width / 2; 
+    this.HEIGHT = height / 3;
+    this.ROOM_SIZE = 24; 
+    this.NUM_ROOMS = 25; // The map must be a minimum of 6 rooms
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
     this.NUM_ROWS = Math.floor(this.HEIGHT / this.ROOM_SIZE);
@@ -80,6 +101,7 @@ RZ.Dungeon = function(width, height, seed) {
     // Generate the grid
     this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
     this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
+    this.startRoom.roomLayout = 'entrance';
     
     // For testing, use numbers generated from a seed value instead of 
     // from Math.random so that you can get repeatable results
@@ -479,11 +501,16 @@ RZ.Map = function (dungeon, context) {
     // Declare static settings
     this.ROOM_SIZE = dungeon.ROOM_SIZE;
     this.INNER_ROOM_SIZE = this.ROOM_SIZE / 2;
+    this.PADDING = this.INNER_ROOM_SIZE;
+    this.MAP_WIDTH = RZ.Game.dungeon.WIDTH;
+    this.MAP_HEIGHT = RZ.Game.dungeon.HEIGHT;
+    this.WIDTH_OFFSET = (RZ.Screen.width - this.MAP_WIDTH) / 2;
+    this.HEIGHT_OFFSET = (RZ.Screen.height - this.MAP_HEIGHT) / 2;
     this.START_ROOM_COLOR = '#88d800';
     this.DEFAULT_ROOM_COLOR = '#444444';
     this.BOSS_ROOM_COLOR = '#B53120';
-    this.BG = '#FCB514';
-    this.ROOM_BG = '#000000';
+    this.BG = '#000000';
+    this.MAP_BG = '#FCB514';
     this.LOCKED_DOOR_COLOR = '#FFE200';
 };
 
@@ -498,6 +525,11 @@ RZ.Map.prototype = {
         // Add a plain background fill
         this.context.fillStyle = this.BG;
         this.context.fillRect(0, 0, RZ.Screen.width, RZ.Screen.height);
+
+        // Add map background fill
+        this.context.fillStyle = this.MAP_BG;
+        this.context.fillRect(this.WIDTH_OFFSET - this.PADDING, this.HEIGHT_OFFSET - this.PADDING, 
+                this.MAP_WIDTH + this.PADDING * 2, this.MAP_HEIGHT + this.PADDING * 2);
         
         while (existingLen > 0) {
             existingLen = existingLen - 1;
@@ -507,7 +539,7 @@ RZ.Map.prototype = {
             if (roomType === 'seed') {
                 roomColor = this.DEFAULT_ROOM_COLOR;
             } else if (roomType === 'branch') {
-                roomColor = this.BG;
+                roomColor = this.MAP_BG;
             } else if (roomType === 'boss') {
                 roomColor = this.BOSS_ROOM_COLOR;
             }
@@ -523,7 +555,7 @@ RZ.Map.prototype = {
             y = coords[1],
             roomType = grid[roomToDraw.x][roomToDraw.y].roomType;
 
-        this.context.fillStyle = this.ROOM_BG;
+        this.context.fillStyle = this.BG;
         this.context.fillRect(x, y, this.ROOM_SIZE, this.ROOM_SIZE);
         this.context.fillStyle = roomColor;
 
@@ -572,8 +604,8 @@ RZ.Map.prototype = {
 
     convertRoomCoordsToPixels: function (roomCoords) {
         return [
-            this.ROOM_SIZE * roomCoords.x,
-            this.ROOM_SIZE * roomCoords.y
+            this.ROOM_SIZE * roomCoords.x + this.WIDTH_OFFSET,
+            this.ROOM_SIZE * roomCoords.y + this.HEIGHT_OFFSET
         ];
     }
 };
@@ -582,8 +614,8 @@ RZ.Player = function (context) {
     this.context = context;
     this.width = 48; // Sprite width and height
     this.height = 48;
-    this.x = RZ.Screen.width / 2 - this.width / 2; // Starting coordinates
-    this.y = RZ.Screen.height / 2 - this.height / 2;
+    this.x = RZ.Screen.width / 2 - this.width / 2; // Put player in center, account for player size and heads up display
+    this.y = RZ.Screen.height / 2 - this.height / 2 + RZ.Room.prototype.headsUpDisplayHeight / 2;
     this.sx = 0; // The upper left coordinates of the section of the
     this.sy = 0; // sprite sheet image to use (source x and y).
     this.speed = 16;
@@ -632,13 +664,14 @@ RZ.Player.prototype = {
 
     keepInBounds: function () {
         var screenWidthMinusPlayer = RZ.Screen.width - this.width,
-            screenHeightMinusPlayer = RZ.Screen.height - this.height;
+            screenHeightMinusPlayer = RZ.Screen.height - this.height,
+            headsUpDisplayHeight = RZ.Room.prototype.headsUpDisplayHeight;
 
         if (this.x <= 0) {
             this.x = 0;
         }
-        if (this.y <= 0) {
-            this.y = 0;
+        if (this.y <= headsUpDisplayHeight) {
+            this.y = headsUpDisplayHeight;
         }
         if (this.x >= screenWidthMinusPlayer) {
             this.x = screenWidthMinusPlayer;
@@ -661,32 +694,192 @@ RZ.Player.prototype = {
 RZ.Room = function () {
     // Set default values
     this.roomType = 'seed'; // Or 'branch', 'fake', 'boss'
+    this.roomLayout = 'empty'; // Or 'entrance', 'four', 'five', etc.
     this.door = {};
     this.door.up = 'none';  // Or 'open', 'locked'
     this.door.down = 'none';
     this.door.left = 'none';
     this.door.right = 'none';
+    this.width = 48; // Tile width and height
+    this.height = 48;
+};
+
+RZ.Room.prototype = {
+    headsUpDisplayHeight: 48 * 4, 
+
+    roomFrameSize: 48 * 2,
+
+    draw: function (canvas) {
+        var context = canvas.getContext('2d'),
+            layout = this.layouts[this.roomLayout],
+            rowsLen = layout.length,
+            colsLen;
+            
+        context.fillStyle = '#000044';
+        context.fillRect(0, 0, RZ.Screen.width, RZ.Screen.height);
+        // Add a black background for the heads up display
+        context.fillStyle = '#000000';
+        context.fillRect(0, 0, RZ.Screen.width, this.headsUpDisplayHeight);
+
+        for (var i = 0; i < rowsLen; i++) {
+            colsLen = layout[i].length;
+
+            for (var j = 0; j < colsLen; j++) {
+                var x = i * this.width + this.roomFrameSize,
+                    y = j * this.height + this.roomFrameSize + this.headsUpDisplayHeight;
+
+                context.drawImage(RZ.Assets.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
+            }
+        }
+    },
+
+    /* Tile Legend
+     * 0 - Empty tile
+     * 1 - Block
+     * 2 - Right-facing statue
+     * 3 - Left-facing statue
+     * 4 - Speckled tile
+     * 5 - Stairs
+     */
+    tiles: {
+        '0': [0, 0],
+        '1': [0, 48],
+        '2': [0, 96],
+        '3': [0, 144],
+        '4': [0, 192],
+        '5': [0, 240]
+    },
+
+    /* Layout Legend
+     * Entrance - start room with statues
+     * Empty - all blank tiles
+     * One - one island of blocks in the center
+     * Two- two islands of blocks on the sides
+     * Four - four blocks near the corners
+     * Five - five groups of blocks in an X formation
+     */
+    layouts: {
+        'entrance': [
+            [0,0,0,0,0,0,0],
+            [0,2,0,2,0,2,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,2,0,2,0,2,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,3,0,3,0,3,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,3,0,3,0,3,0],
+            [0,0,0,0,0,0,0]
+        ],
+
+        'empty': [
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0]
+        ],
+
+        'one': [
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0]
+        ],
+
+        'two': [
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,1,1,1,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0]
+        ], 
+        
+        'four': [
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,0,1,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,1,0,1,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0]
+        ],
+
+        'five': [
+            [0,0,0,0,0,0,0],
+            [0,1,0,0,0,1,0],
+            [0,1,0,0,0,1,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,1,0,0,0],
+            [0,0,0,1,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,1,0,0,0,1,0],
+            [0,1,0,0,0,1,0],
+            [0,0,0,0,0,0,0]
+        ]
+    }
 };
 
 RZ.Screen = {
     init: function (id) {
         this.fgCanvas = document.getElementById(id);
-        this.bgCanvas = document.getElementById(id).cloneNode(true);
-        this.mapCanvas = document.getElementById(id).cloneNode(true);
-
-        this.bgCanvas.id = 'RZbg';
-        this.bgCanvas.style.zIndex = -1;
-        document.body.appendChild(this.bgCanvas);
-
-        this.mapCanvas.id = 'RZmap';
-        this.mapCanvas.style.visibility = 'hidden';
-        document.body.appendChild(this.mapCanvas);
-
         this.fg = this.fgCanvas.getContext('2d');
-        this.bg = this.bgCanvas.getContext('2d');
-        this.map = this.mapCanvas.getContext('2d');
-
         this.width = this.fgCanvas.clientWidth; // Get the width of the canvas element
         this.height = this.fgCanvas.clientHeight; // and the height
+        
+        this.bgCanvas = document.createElement('canvas');
+        this.bgCanvas.id = 'RZbg';
+        this.bgCanvas.width = this.width;
+        this.bgCanvas.height = this.height;
+        this.bgCanvas.position = 'absolute';
+        this.bgCanvas.top = '0px';
+        this.bgCanvas.left = '0px';
+        this.bgCanvas.background = 'transparent';
+        this.bgCanvas.style.zIndex = -1;
+        document.body.appendChild(this.bgCanvas);
+        this.bg = this.bgCanvas.getContext('2d');
+
+        this.mapCanvas = document.createElement('canvas');
+        this.mapCanvas.id = 'RZmap';
+        this.mapCanvas.width = this.width;
+        this.mapCanvas.height = this.height;
+        this.mapCanvas.position = 'absolute';
+        this.mapCanvas.top = '0px';
+        this.mapCanvas.left = '0px';
+        this.mapCanvas.background = 'transparent';
+        this.mapCanvas.style.visibility = 'hidden';
+        document.body.appendChild(this.mapCanvas);
+        this.map = this.mapCanvas.getContext('2d');
     }
 };

@@ -6,16 +6,23 @@ var RZ = RZ || {};
 
 RZ.Game = {
     init: function (id, seed) {
-        RZ.Screen.init(id); // Set up game canvases 
-        RZ.Keyboard.init();
+        var map, rooms;
+        
+        var startDrawing = function () {
+            map.draw(RZ.Game.dungeon.grid, rooms);
+            RZ.Game.currentRoom.draw(RZ.Screen.bgCanvas);
+            RZ.Game.player.init();
+        }; 
+        
+        RZ.Screen.init(id); // Set up canvases
+        RZ.Keyboard.init(); // Start keyboard events
+        RZ.Assets.init(startDrawing); // Load images, then call the startDrawing callback
 
-        this.dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed);
-        this.rooms = this.dungeon.generate();
-        this.map = new RZ.Map(this.dungeon, RZ.Screen.map);
-        this.map.draw(this.dungeon.grid, this.rooms);
-
+        this.dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed); // Create dungeon object
+        rooms = this.dungeon.generate(); // Generate random dungeon
+        map = new RZ.Map(this.dungeon, RZ.Screen.map);
+        this.currentRoom = this.dungeon.startRoom;
         this.player = new RZ.Player(RZ.Screen.fg);
-        RZ.Assets.init(RZ.Game.player.init); // Load images
 
         this.main();
     }, 

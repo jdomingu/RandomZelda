@@ -2,8 +2,8 @@ RZ.Player = function (context) {
     this.context = context;
     this.width = 48; // Sprite width and height
     this.height = 48;
-    this.x = RZ.Screen.width / 2 - this.width / 2; // Starting coordinates
-    this.y = RZ.Screen.height / 2 - this.height / 2;
+    this.x = RZ.Screen.width / 2 - this.width / 2; // Put player in center, account for player size and heads up display
+    this.y = RZ.Screen.height / 2 - this.height / 2 + RZ.Room.prototype.headsUpDisplayHeight / 2;
     this.sx = 0; // The upper left coordinates of the section of the
     this.sy = 0; // sprite sheet image to use (source x and y).
     this.speed = 16;
@@ -52,13 +52,14 @@ RZ.Player.prototype = {
 
     keepInBounds: function () {
         var screenWidthMinusPlayer = RZ.Screen.width - this.width,
-            screenHeightMinusPlayer = RZ.Screen.height - this.height;
+            screenHeightMinusPlayer = RZ.Screen.height - this.height,
+            headsUpDisplayHeight = RZ.Room.prototype.headsUpDisplayHeight;
 
         if (this.x <= 0) {
             this.x = 0;
         }
-        if (this.y <= 0) {
-            this.y = 0;
+        if (this.y <= headsUpDisplayHeight) {
+            this.y = headsUpDisplayHeight;
         }
         if (this.x >= screenWidthMinusPlayer) {
             this.x = screenWidthMinusPlayer;

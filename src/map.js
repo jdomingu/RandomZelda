@@ -4,11 +4,16 @@ RZ.Map = function (dungeon, context) {
     // Declare static settings
     this.ROOM_SIZE = dungeon.ROOM_SIZE;
     this.INNER_ROOM_SIZE = this.ROOM_SIZE / 2;
+    this.PADDING = this.INNER_ROOM_SIZE;
+    this.MAP_WIDTH = RZ.Game.dungeon.WIDTH;
+    this.MAP_HEIGHT = RZ.Game.dungeon.HEIGHT;
+    this.WIDTH_OFFSET = (RZ.Screen.width - this.MAP_WIDTH) / 2;
+    this.HEIGHT_OFFSET = (RZ.Screen.height - this.MAP_HEIGHT) / 2;
     this.START_ROOM_COLOR = '#88d800';
     this.DEFAULT_ROOM_COLOR = '#444444';
     this.BOSS_ROOM_COLOR = '#B53120';
-    this.BG = '#FCB514';
-    this.ROOM_BG = '#000000';
+    this.BG = '#000000';
+    this.MAP_BG = '#FCB514';
     this.LOCKED_DOOR_COLOR = '#FFE200';
 };
 
@@ -23,6 +28,11 @@ RZ.Map.prototype = {
         // Add a plain background fill
         this.context.fillStyle = this.BG;
         this.context.fillRect(0, 0, RZ.Screen.width, RZ.Screen.height);
+
+        // Add map background fill
+        this.context.fillStyle = this.MAP_BG;
+        this.context.fillRect(this.WIDTH_OFFSET - this.PADDING, this.HEIGHT_OFFSET - this.PADDING, 
+                this.MAP_WIDTH + this.PADDING * 2, this.MAP_HEIGHT + this.PADDING * 2);
         
         while (existingLen > 0) {
             existingLen = existingLen - 1;
@@ -32,7 +42,7 @@ RZ.Map.prototype = {
             if (roomType === 'seed') {
                 roomColor = this.DEFAULT_ROOM_COLOR;
             } else if (roomType === 'branch') {
-                roomColor = this.BG;
+                roomColor = this.MAP_BG;
             } else if (roomType === 'boss') {
                 roomColor = this.BOSS_ROOM_COLOR;
             }
@@ -48,7 +58,7 @@ RZ.Map.prototype = {
             y = coords[1],
             roomType = grid[roomToDraw.x][roomToDraw.y].roomType;
 
-        this.context.fillStyle = this.ROOM_BG;
+        this.context.fillStyle = this.BG;
         this.context.fillRect(x, y, this.ROOM_SIZE, this.ROOM_SIZE);
         this.context.fillStyle = roomColor;
 
@@ -97,8 +107,8 @@ RZ.Map.prototype = {
 
     convertRoomCoordsToPixels: function (roomCoords) {
         return [
-            this.ROOM_SIZE * roomCoords.x,
-            this.ROOM_SIZE * roomCoords.y
+            this.ROOM_SIZE * roomCoords.x + this.WIDTH_OFFSET,
+            this.ROOM_SIZE * roomCoords.y + this.HEIGHT_OFFSET
         ];
     }
 };
