@@ -6,11 +6,9 @@ RZ.Player = function (context) {
     this.y = RZ.Screen.height / 2 - this.height / 2 + RZ.Room.prototype.headsUpDisplayHeight / 2;
     this.sx = 0; // The upper left coordinates of the section of the
     this.sy = 0; // sprite sheet image to use (source x and y).
-    this.speed = 16;
-    this.intervalOrig = 3;
-    this.interval = 3; // Slow down animation with an interval
-    this.animIntervalOrig = 1;
-    this.animInterval = 1; // Slow down animation image change
+    this.speed = 4;
+    this.animIntervalOrig = 4;
+    this.animInterval = 4; // Slow down animation image change
 };
 
 RZ.Player.prototype = {
@@ -20,18 +18,13 @@ RZ.Player.prototype = {
     },
 
     update: function () {
-        if (this.interval > 0) {
-            this.interval -= 1;
-        } else {
-            this.context.clearRect(this.x, this.y, this.width, this.height);
-        
-            this.toggleAnimation();
-            this.move();
-            this.keepInBounds();
+        this.context.clearRect(this.x, this.y, this.width, this.height);
+    
+        this.toggleAnimation();
+        this.move();
+        this.keepInBounds();
 
-            this.context.drawImage(RZ.Assets.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
-            this.interval = this.intervalOrig;
-        }
+        this.context.drawImage(RZ.Assets.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
     },
 
     move: function () {
