@@ -74,6 +74,6 @@ RZ.Screen = {
 
         setTimeout(function () { 
             RZ.Screen.transition(canvas, canvas.style[side], end, side);
-        }, 15);
+        }, 10);
     }
 };

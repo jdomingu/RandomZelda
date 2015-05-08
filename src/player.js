@@ -36,7 +36,7 @@ RZ.Player.prototype = {
         var origY = this.y;
 
         if (RZ.Keyboard.isDown('W')) {
-            if (RZ.Game.currentRoom.isAccessible(this.x + this.width / 2, this.y + - this.speed)) {
+            if (RZ.Game.currentRoom.isAccessible(this.x + this.width / 2, this.y + this.width / 2 - this.speed)) {
                 this.y -= this.speed;
             }
             this.sx = 96;
