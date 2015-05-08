@@ -1,6 +1,8 @@
-canvas {
+div {
     position: absolute;
-    top: 0px;
-    left: 0px;
-    background: transparent;
+    top: 0;
+    left: 0;
+    min-width: 768;
+    min-height: 720;
+    overflow: hidden;
 } 

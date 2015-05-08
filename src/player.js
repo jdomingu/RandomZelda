@@ -1,9 +1,11 @@
 RZ.Player = function (canvas) {
     this.context = canvas.getContext('2d');
+    this.canvasWidth = canvas.clientWidth;
+    this.canvasHeight = canvas.clientHeight;
     this.width = 48; // Sprite width and height
     this.height = 48;
-    this.x = canvas.clientWidth / 2 - this.width / 2; // Put player in center, account for player size and heads up display
-    this.y = canvas.clientHeight / 2 - this.height / 2 + RZ.Room.prototype.headsUpDisplayHeight / 2;
+    this.x = this.canvasWidth / 2 - this.width / 2; // Put player in center, account for player size
+    this.y = this.canvasHeight / 2 - this.height / 2;
     this.sx = 0; // The upper left coordinates of the section of the
     this.sy = 0; // sprite sheet image to use (source x and y).
     this.speed = 4;
@@ -57,7 +59,7 @@ RZ.Player.prototype = {
     },
 
     keepInBoundsX: function () {
-        var screenWidthMinusPlayer = RZ.Screen.width - this.width;
+        var screenWidthMinusPlayer = this.canvasWidth - this.width;
 
         if (this.x <= 0) {
             this.x = 0;
@@ -69,11 +71,10 @@ RZ.Player.prototype = {
     },    
     
     keepInBoundsY: function () {
-        var screenHeightMinusPlayer = RZ.Screen.height - this.height,
-            headsUpDisplayHeight = RZ.Room.prototype.headsUpDisplayHeight;
+        var screenHeightMinusPlayer = this.canvasHeight - this.height;
 
-        if (this.y <= headsUpDisplayHeight) {
-            this.y = headsUpDisplayHeight;
+        if (this.y <= 0) {
+            this.y = 0;
         }
 
         if (this.y >= screenHeightMinusPlayer) {

@@ -10,7 +10,7 @@ RZ.Game = {
         
         RZ.Screen.init(id); // Set up canvases
 
-        dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed); // Create dungeon object
+        dungeon = new RZ.Dungeon(RZ.Screen.map.width, RZ.Screen.map.height, seed); // Create dungeon object
         rooms = dungeon.generate(); // Generate random dungeon
         map = new RZ.Map(dungeon, RZ.Screen.map);
         this.currentRoom = dungeon.startRoom;
@@ -36,14 +36,18 @@ RZ.Game = {
         this.main();
     },
 
+    locked: false,
+
     paused: false,
 
     main: function () {
         window.requestAnimationFrame(RZ.Game.main);
 
-        RZ.Keyboard.checkMapToggle();
+        if (RZ.Game.locked === false) {   // Do not respond to toggling the map until 
+            RZ.Keyboard.checkMapToggle(); // the screen transition ends
+        }
 
-        if (RZ.Game.paused === false) {
+        if (RZ.Game.paused === false) { // Do not respond to player movement when paused
             if (RZ.Keyboard.areMovementKeysDown()) {
                 RZ.Game.player.update();
             }
@@ -500,12 +504,14 @@ RZ.Keyboard = {
             if (RZ.Keyboard.hasFired[keyCode] === false) {
                 RZ.Keyboard.hasFired[keyCode] = true;
 
-                if (RZ.Screen.map.style.visibility === 'hidden') {
-                    RZ.Screen.map.style.visibility = 'visible';
+                if (RZ.Game.paused === false) {
+                    RZ.Game.locked = true;
                     RZ.Game.paused = true;
+                    RZ.Screen.mapTransition('coming');
                 } else {
-                    RZ.Screen.map.style.visibility = 'hidden';
+                    RZ.Game.locked = true;
                     RZ.Game.paused = false;
+                    RZ.Screen.mapTransition('going');
                 }
             } 
         }
@@ -632,10 +638,12 @@ RZ.Map.prototype = {
 
 RZ.Player = function (canvas) {
     this.context = canvas.getContext('2d');
+    this.canvasWidth = canvas.clientWidth;
+    this.canvasHeight = canvas.clientHeight;
     this.width = 48; // Sprite width and height
     this.height = 48;
-    this.x = canvas.clientWidth / 2 - this.width / 2; // Put player in center, account for player size and heads up display
-    this.y = canvas.clientHeight / 2 - this.height / 2 + RZ.Room.prototype.headsUpDisplayHeight / 2;
+    this.x = this.canvasWidth / 2 - this.width / 2; // Put player in center, account for player size
+    this.y = this.canvasHeight / 2 - this.height / 2;
     this.sx = 0; // The upper left coordinates of the section of the
     this.sy = 0; // sprite sheet image to use (source x and y).
     this.speed = 4;
@@ -689,7 +697,7 @@ RZ.Player.prototype = {
     },
 
     keepInBoundsX: function () {
-        var screenWidthMinusPlayer = RZ.Screen.width - this.width;
+        var screenWidthMinusPlayer = this.canvasWidth - this.width;
 
         if (this.x <= 0) {
             this.x = 0;
@@ -701,11 +709,10 @@ RZ.Player.prototype = {
     },    
     
     keepInBoundsY: function () {
-        var screenHeightMinusPlayer = RZ.Screen.height - this.height,
-            headsUpDisplayHeight = RZ.Room.prototype.headsUpDisplayHeight;
+        var screenHeightMinusPlayer = this.canvasHeight - this.height;
 
-        if (this.y <= headsUpDisplayHeight) {
-            this.y = headsUpDisplayHeight;
+        if (this.y <= 0) {
+            this.y = 0;
         }
 
         if (this.y >= screenHeightMinusPlayer) {
@@ -737,8 +744,6 @@ RZ.Room = function () {
 };
 
 RZ.Room.prototype = {
-    headsUpDisplayHeight: 48 * 4, 
-
     wallWidth: 48 * 2,
 
     draw: function (canvas) {
@@ -750,15 +755,15 @@ RZ.Room.prototype = {
         context.fillStyle = '#000044';
         context.fillRect(0, 0, canvas.width, canvas.height);
         // Add a black background for the heads up display
-        context.fillStyle = '#000000';
-        context.fillRect(0, 0, canvas.width, this.headsUpDisplayHeight);
+        //context.fillStyle = '#000000';
+        //context.fillRect(0, 0, canvas.width, this.headsUpDisplayHeight);
 
         for (var i = 0; i < rowsLen; i++) {
             colsLen = layout[i].length;
 
             for (var j = 0; j < colsLen; j++) {
                 var x = i * this.width + this.wallWidth,
-                    y = j * this.height + this.wallWidth + this.headsUpDisplayHeight;
+                    y = j * this.height + this.wallWidth;
 
                 context.drawImage(RZ.Assets.img.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
             }
@@ -885,31 +890,80 @@ RZ.Room.prototype = {
 
 RZ.Screen = {
     init: function (id) {
-        this.fg = document.getElementById(id);
-
-        var width = this.fg.clientWidth, // Get the width of the canvas element
-            height = this.fg.clientHeight; // and the height
+        var mainDiv = document.getElementById(id),
+            headsUpDisplayHeight = 192,
+            width = mainDiv.clientWidth, // Get the width of the canvas element
+            height = mainDiv.clientHeight, // and the height
+            heightMinusHUD = height - headsUpDisplayHeight; // and the height
         
-        this.bg = document.createElement('canvas');
-        this.bg.id = 'RZbg';
-        this.bg.width = width;
-        this.bg.height = height;
-        this.bg.position = 'absolute';
-        this.bg.top = '0px';
-        this.bg.left = '0px';
-        this.bg.background = 'transparent';
-        this.bg.style.zIndex = -1;
-        document.body.appendChild(this.bg);
+        this.mapStartTop = 0 - heightMinusHUD;
+        this.roomStartTop = headsUpDisplayHeight;
 
         this.map = document.createElement('canvas');
         this.map.id = 'RZmap';
         this.map.width = width;
         this.map.height = height;
-        this.map.position = 'absolute';
-        this.map.top = '0px';
-        this.map.left = '0px';
-        this.map.background = 'transparent';
-        this.map.style.visibility = 'hidden';
-        document.body.appendChild(this.map);
+        this.map.style.position = 'absolute';
+        this.map.startTop = 0 - heightMinusHUD;
+        this.map.style.top = this.map.startTop;
+        this.map.style.left = 0;
+        this.map.style.background = 'transparent';
+        this.map.style.zIndex = 0;
+        mainDiv.appendChild(this.map);
+        
+        this.fg = document.createElement('canvas');
+        this.fg.id = 'RZfg';
+        this.fg.width = width;
+        this.fg.height = heightMinusHUD;
+        this.fg.style.position = 'absolute';
+        this.fg.style.top = headsUpDisplayHeight;
+        this.fg.style.left = 0;
+        this.fg.style.background = 'transparent';
+        this.fg.style.zIndex = -1;
+        mainDiv.appendChild(this.fg);
+
+        this.bg = document.createElement('canvas');
+        this.bg.id = 'RZbg';
+        this.bg.width = width;
+        this.bg.height = heightMinusHUD;
+        this.bg.style.position = 'absolute';
+        this.bg.style.top = headsUpDisplayHeight;
+        this.bg.style.left = 0;
+        this.bg.style.background = 'transparent';
+        this.bg.style.zIndex = -2;
+        mainDiv.appendChild(this.bg);
+
+        this.bg.innerHTML += '<p>Ensure that your browser is compatible with canvas</p>';
+    },
+
+    mapTransition: function (direction) {
+        if (direction === 'coming') {
+            RZ.Screen.transition(RZ.Screen.map, RZ.Screen.map.style.top, 0, 'top');
+            RZ.Screen.transition(RZ.Screen.fg, RZ.Screen.fg.style.top, RZ.Screen.map.height, 'top');
+            RZ.Screen.transition(RZ.Screen.bg, RZ.Screen.bg.style.top, RZ.Screen.map.height, 'top');
+        } else if (direction === 'going') {
+            RZ.Screen.transition(RZ.Screen.map, RZ.Screen.map.style.top, RZ.Screen.mapStartTop, 'top');
+            RZ.Screen.transition(RZ.Screen.fg, RZ.Screen.fg.style.top, RZ.Screen.roomStartTop, 'top');
+            RZ.Screen.transition(RZ.Screen.bg, RZ.Screen.bg.style.top, RZ.Screen.roomStartTop, 'top');
+        }
+    },
+
+    transition: function (canvas, start, end, side) {
+        var diff = parseInt(start) - end,
+            dist = 5;
+
+        if (Math.abs(diff) < dist) {
+            RZ.Game.locked = false;
+            canvas.style[side] = end;
+            return;
+        } else if (diff < 0) {
+            canvas.style[side] = parseInt(start) + dist;
+        } else if (diff > 0) { 
+            canvas.style[side] = parseInt(start) - dist;
+        }
+
+        setTimeout(function () { 
+            RZ.Screen.transition(canvas, canvas.style[side], end, side);
+        }, 15);
     }
 };

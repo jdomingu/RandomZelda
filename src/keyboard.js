@@ -54,12 +54,14 @@ RZ.Keyboard = {
             if (RZ.Keyboard.hasFired[keyCode] === false) {
                 RZ.Keyboard.hasFired[keyCode] = true;
 
-                if (RZ.Screen.map.style.visibility === 'hidden') {
-                    RZ.Screen.map.style.visibility = 'visible';
+                if (RZ.Game.paused === false) {
+                    RZ.Game.locked = true;
                     RZ.Game.paused = true;
+                    RZ.Screen.mapTransition('coming');
                 } else {
-                    RZ.Screen.map.style.visibility = 'hidden';
+                    RZ.Game.locked = true;
                     RZ.Game.paused = false;
+                    RZ.Screen.mapTransition('going');
                 }
             } 
         }

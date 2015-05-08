@@ -10,7 +10,7 @@ RZ.Game = {
         
         RZ.Screen.init(id); // Set up canvases
 
-        dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed); // Create dungeon object
+        dungeon = new RZ.Dungeon(RZ.Screen.map.width, RZ.Screen.map.height, seed); // Create dungeon object
         rooms = dungeon.generate(); // Generate random dungeon
         map = new RZ.Map(dungeon, RZ.Screen.map);
         this.currentRoom = dungeon.startRoom;
@@ -36,14 +36,18 @@ RZ.Game = {
         this.main();
     },
 
+    locked: false,
+
     paused: false,
 
     main: function () {
         window.requestAnimationFrame(RZ.Game.main);
 
-        RZ.Keyboard.checkMapToggle();
+        if (RZ.Game.locked === false) {   // Do not respond to toggling the map until 
+            RZ.Keyboard.checkMapToggle(); // the screen transition ends
+        }
 
-        if (RZ.Game.paused === false) {
+        if (RZ.Game.paused === false) { // Do not respond to player movement when paused
             if (RZ.Keyboard.areMovementKeysDown()) {
                 RZ.Game.player.update();
             }
