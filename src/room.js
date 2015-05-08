@@ -14,7 +14,7 @@ RZ.Room = function () {
 RZ.Room.prototype = {
     headsUpDisplayHeight: 48 * 4, 
 
-    roomFrameSize: 48 * 2,
+    wallWidth: 48 * 2,
 
     draw: function (canvas) {
         var context = canvas.getContext('2d'),
@@ -32,8 +32,8 @@ RZ.Room.prototype = {
             colsLen = layout[i].length;
 
             for (var j = 0; j < colsLen; j++) {
-                var x = i * this.width + this.roomFrameSize,
-                    y = j * this.height + this.roomFrameSize + this.headsUpDisplayHeight;
+                var x = i * this.width + this.wallWidth,
+                    y = j * this.height + this.wallWidth + this.headsUpDisplayHeight;
 
                 context.drawImage(RZ.Assets.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
             }

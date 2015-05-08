@@ -22,41 +22,61 @@ RZ.Player.prototype = {
     
         this.toggleAnimation();
         this.move();
-        this.keepInBounds();
 
         this.context.drawImage(RZ.Assets.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
     },
 
     move: function () {
+        /* Up and down/left and right movement is mutually exclusive
+         * Do not allow diagonal movement (if the y value changes, do not change the x value)
+         * At the edge of the screen, the player can hold two keys without being frozen in place
+         * E.g. If the player walks up to the top, holding up and right simultaneously allows 
+         * the player to move right */
+        var origY = this.y;
+
         if (RZ.Keyboard.isDown('W')) {
             this.y -= this.speed;
             this.sx = 96;
-        } else if (RZ.Keyboard.isDown('A')) {
-            this.x -= this.speed;
-            this.sx = 48;
         } else if (RZ.Keyboard.isDown('S')) {
             this.y += this.speed;
             this.sx = 0;
-        } else if (RZ.Keyboard.isDown('D')) {
-            this.x += this.speed;
-            this.sx = 144;
+        } 
+        
+        this.keepInBoundsY();
+
+        if (origY === this.y) {
+            if (RZ.Keyboard.isDown('A')) {
+                this.x -= this.speed;
+                this.sx = 48;
+            } else if (RZ.Keyboard.isDown('D')) {
+                this.x += this.speed;
+                this.sx = 144;
+            }
         }
+
+        this.keepInBoundsX();
     },
 
-    keepInBounds: function () {
-        var screenWidthMinusPlayer = RZ.Screen.width - this.width,
-            screenHeightMinusPlayer = RZ.Screen.height - this.height,
-            headsUpDisplayHeight = RZ.Room.prototype.headsUpDisplayHeight;
+    keepInBoundsX: function () {
+        var screenWidthMinusPlayer = RZ.Screen.width - this.width;
 
         if (this.x <= 0) {
             this.x = 0;
         }
-        if (this.y <= headsUpDisplayHeight) {
-            this.y = headsUpDisplayHeight;
-        }
+        
         if (this.x >= screenWidthMinusPlayer) {
             this.x = screenWidthMinusPlayer;
         }
+    },    
+    
+    keepInBoundsY: function () {
+        var screenHeightMinusPlayer = RZ.Screen.height - this.height,
+            headsUpDisplayHeight = RZ.Room.prototype.headsUpDisplayHeight;
+
+        if (this.y <= headsUpDisplayHeight) {
+            this.y = headsUpDisplayHeight;
+        }
+
         if (this.y >= screenHeightMinusPlayer) {
             this.y = screenHeightMinusPlayer;
         }
