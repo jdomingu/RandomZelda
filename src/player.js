@@ -36,10 +36,14 @@ RZ.Player.prototype = {
         var origY = this.y;
 
         if (RZ.Keyboard.isDown('W')) {
-            this.y -= this.speed;
+            if (RZ.Game.currentRoom.isAccessible(this.x + this.width / 2, this.y + - this.speed)) {
+                this.y -= this.speed;
+            }
             this.sx = 96;
         } else if (RZ.Keyboard.isDown('S')) {
-            this.y += this.speed;
+            if (RZ.Game.currentRoom.isAccessible(this.x + this.width / 2, this.y + this.width  + this.speed)) {
+                this.y += this.speed;
+            }
             this.sx = 0;
         } 
         
@@ -47,10 +51,14 @@ RZ.Player.prototype = {
 
         if (origY === this.y) {
             if (RZ.Keyboard.isDown('A')) {
-                this.x -= this.speed;
+                if (RZ.Game.currentRoom.isAccessible(this.x + - this.speed, this.y + this.width / 2)) {
+                    this.x -= this.speed;
+                }
                 this.sx = 48;
             } else if (RZ.Keyboard.isDown('D')) {
-                this.x += this.speed;
+                if (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed, this.y + this.width / 2)) {
+                    this.x += this.speed;
+                }
                 this.sx = 144;
             }
         }

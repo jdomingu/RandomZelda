@@ -2,6 +2,7 @@ RZ.Room = function () {
     // Set default values
     this.roomType = 'seed'; // Or 'branch', 'fake', 'boss'
     this.roomLayout = 'empty'; // Or 'entrance', 'four', 'five', etc.
+    this.accessibleCoords = this.defaultAccessibleCoords;
     this.door = {};
     this.door.up = 'none';  // Or 'open', 'locked'
     this.door.down = 'none';
@@ -36,6 +37,45 @@ RZ.Room.prototype = {
                 context.drawImage(RZ.Assets.img.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
             }
         }
+    },
+
+    defaultAccessibleCoords: [
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,1,0,1,0,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,1,0,1,0,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,1,0,1,0,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,1,0,1,0,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0]
+    ],
+
+    isAccessible: function (x, y) {
+        var coords = this.convertPixelsToCoords(x, y); 
+
+        if (coords[0] >= 0 && coords[0] < this.accessibleCoords.length &&
+                coords[1] >= 0 && coords[1] < this.accessibleCoords[coords[0]].length) {
+            if (this.accessibleCoords[coords[0]][coords[1]] === 0) {
+                return true;
+            } 
+        }
+
+        return false;
+    },
+
+    convertPixelsToCoords: function (x, y) {
+        var coordX = Math.floor(x / 48),
+            coordY = Math.floor(y / 48);
+
+        return [coordX, coordY];
     },
 
     /* Tile Legend

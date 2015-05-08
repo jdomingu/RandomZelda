@@ -674,10 +674,14 @@ RZ.Player.prototype = {
         var origY = this.y;
 
         if (RZ.Keyboard.isDown('W')) {
-            this.y -= this.speed;
+            if (RZ.Game.currentRoom.isAccessible(this.x + this.width / 2, this.y + - this.speed)) {
+                this.y -= this.speed;
+            }
             this.sx = 96;
         } else if (RZ.Keyboard.isDown('S')) {
-            this.y += this.speed;
+            if (RZ.Game.currentRoom.isAccessible(this.x + this.width / 2, this.y + this.width  + this.speed)) {
+                this.y += this.speed;
+            }
             this.sx = 0;
         } 
         
@@ -685,10 +689,14 @@ RZ.Player.prototype = {
 
         if (origY === this.y) {
             if (RZ.Keyboard.isDown('A')) {
-                this.x -= this.speed;
+                if (RZ.Game.currentRoom.isAccessible(this.x + - this.speed, this.y + this.width / 2)) {
+                    this.x -= this.speed;
+                }
                 this.sx = 48;
             } else if (RZ.Keyboard.isDown('D')) {
-                this.x += this.speed;
+                if (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed, this.y + this.width / 2)) {
+                    this.x += this.speed;
+                }
                 this.sx = 144;
             }
         }
@@ -734,6 +742,7 @@ RZ.Room = function () {
     // Set default values
     this.roomType = 'seed'; // Or 'branch', 'fake', 'boss'
     this.roomLayout = 'empty'; // Or 'entrance', 'four', 'five', etc.
+    this.accessibleCoords = this.defaultAccessibleCoords;
     this.door = {};
     this.door.up = 'none';  // Or 'open', 'locked'
     this.door.down = 'none';
@@ -768,6 +777,45 @@ RZ.Room.prototype = {
                 context.drawImage(RZ.Assets.img.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
             }
         }
+    },
+
+    defaultAccessibleCoords: [
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,1,0,1,0,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,1,0,1,0,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,1,0,1,0,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,1,0,1,0,1,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0]
+    ],
+
+    isAccessible: function (x, y) {
+        var coords = this.convertPixelsToCoords(x, y); 
+
+        if (coords[0] >= 0 && coords[0] < this.accessibleCoords.length &&
+                coords[1] >= 0 && coords[1] < this.accessibleCoords[coords[0]].length) {
+            if (this.accessibleCoords[coords[0]][coords[1]] === 0) {
+                return true;
+            } 
+        }
+
+        return false;
+    },
+
+    convertPixelsToCoords: function (x, y) {
+        var coordX = Math.floor(x / 48),
+            coordY = Math.floor(y / 48);
+
+        return [coordX, coordY];
     },
 
     /* Tile Legend
