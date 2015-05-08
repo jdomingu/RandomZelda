@@ -23,10 +23,10 @@ RZ.Room.prototype = {
             colsLen;
             
         context.fillStyle = '#000044';
-        context.fillRect(0, 0, RZ.Screen.width, RZ.Screen.height);
+        context.fillRect(0, 0, canvas.width, canvas.height);
         // Add a black background for the heads up display
         context.fillStyle = '#000000';
-        context.fillRect(0, 0, RZ.Screen.width, this.headsUpDisplayHeight);
+        context.fillRect(0, 0, canvas.width, this.headsUpDisplayHeight);
 
         for (var i = 0; i < rowsLen; i++) {
             colsLen = layout[i].length;

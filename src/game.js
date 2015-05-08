@@ -6,26 +6,35 @@ var RZ = RZ || {};
 
 RZ.Game = {
     init: function (id, seed) {
-        var map, rooms;
-        
-        var startDrawing = function () {
-            map.draw(RZ.Game.dungeon.grid, rooms);
-            RZ.Game.currentRoom.draw(RZ.Screen.bgCanvas);
-            RZ.Game.player.init();
-        }; 
+        var dungeon, rooms, map;
         
         RZ.Screen.init(id); // Set up canvases
-        RZ.Keyboard.init(); // Start keyboard events
-        RZ.Assets.init(startDrawing); // Load images, then call the startDrawing callback
 
-        this.dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed); // Create dungeon object
-        rooms = this.dungeon.generate(); // Generate random dungeon
-        map = new RZ.Map(this.dungeon, RZ.Screen.map);
-        this.currentRoom = this.dungeon.startRoom;
+        dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed); // Create dungeon object
+        rooms = dungeon.generate(); // Generate random dungeon
+        map = new RZ.Map(dungeon, RZ.Screen.map);
+        this.currentRoom = dungeon.startRoom;
         this.player = new RZ.Player(RZ.Screen.fg);
 
-        this.main();
+        return [dungeon.grid, rooms, map];
     }, 
+
+    run: function (obj) {
+        var grid = obj[0],
+            rooms = obj[1],
+            map = obj[2];
+
+        var startDrawing = function () {
+            map.draw(grid, rooms);
+            RZ.Game.currentRoom.draw(RZ.Screen.bg);
+            RZ.Game.player.drawOnce();
+        }; 
+
+        RZ.Assets.init(startDrawing); // Load images, then call the startDrawing callback
+        RZ.Keyboard.init(); // Start keyboard events
+        
+        this.main();
+    },
 
     paused: false,
 

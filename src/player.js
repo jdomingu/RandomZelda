@@ -1,9 +1,9 @@
-RZ.Player = function (context) {
-    this.context = context;
+RZ.Player = function (canvas) {
+    this.context = canvas.getContext('2d');
     this.width = 48; // Sprite width and height
     this.height = 48;
-    this.x = RZ.Screen.width / 2 - this.width / 2; // Put player in center, account for player size and heads up display
-    this.y = RZ.Screen.height / 2 - this.height / 2 + RZ.Room.prototype.headsUpDisplayHeight / 2;
+    this.x = canvas.clientWidth / 2 - this.width / 2; // Put player in center, account for player size and heads up display
+    this.y = canvas.clientHeight / 2 - this.height / 2 + RZ.Room.prototype.headsUpDisplayHeight / 2;
     this.sx = 0; // The upper left coordinates of the section of the
     this.sy = 0; // sprite sheet image to use (source x and y).
     this.speed = 4;
@@ -12,9 +12,8 @@ RZ.Player = function (context) {
 };
 
 RZ.Player.prototype = {
-    init: function () {
-        var that = RZ.Game.player;
-        that.context.drawImage(RZ.Assets.img.link, that.sx, that.sy, that.width, that.height, that.x, that.y, that.width, that.height);
+    drawOnce: function () {
+        this.context.drawImage(RZ.Assets.img.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
     },
 
     update: function () {

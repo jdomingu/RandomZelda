@@ -6,26 +6,35 @@ var RZ = RZ || {};
 
 RZ.Game = {
     init: function (id, seed) {
-        var map, rooms;
-        
-        var startDrawing = function () {
-            map.draw(RZ.Game.dungeon.grid, rooms);
-            RZ.Game.currentRoom.draw(RZ.Screen.bgCanvas);
-            RZ.Game.player.init();
-        }; 
+        var dungeon, rooms, map;
         
         RZ.Screen.init(id); // Set up canvases
-        RZ.Keyboard.init(); // Start keyboard events
-        RZ.Assets.init(startDrawing); // Load images, then call the startDrawing callback
 
-        this.dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed); // Create dungeon object
-        rooms = this.dungeon.generate(); // Generate random dungeon
-        map = new RZ.Map(this.dungeon, RZ.Screen.map);
-        this.currentRoom = this.dungeon.startRoom;
+        dungeon = new RZ.Dungeon(RZ.Screen.width, RZ.Screen.height, seed); // Create dungeon object
+        rooms = dungeon.generate(); // Generate random dungeon
+        map = new RZ.Map(dungeon, RZ.Screen.map);
+        this.currentRoom = dungeon.startRoom;
         this.player = new RZ.Player(RZ.Screen.fg);
 
-        this.main();
+        return [dungeon.grid, rooms, map];
     }, 
+
+    run: function (obj) {
+        var grid = obj[0],
+            rooms = obj[1],
+            map = obj[2];
+
+        var startDrawing = function () {
+            map.draw(grid, rooms);
+            RZ.Game.currentRoom.draw(RZ.Screen.bg);
+            RZ.Game.player.drawOnce();
+        }; 
+
+        RZ.Assets.init(startDrawing); // Load images, then call the startDrawing callback
+        RZ.Keyboard.init(); // Start keyboard events
+        
+        this.main();
+    },
 
     paused: false,
 
@@ -491,11 +500,11 @@ RZ.Keyboard = {
             if (RZ.Keyboard.hasFired[keyCode] === false) {
                 RZ.Keyboard.hasFired[keyCode] = true;
 
-                if (RZ.Screen.mapCanvas.style.visibility === 'hidden') {
-                    RZ.Screen.mapCanvas.style.visibility = 'visible';
+                if (RZ.Screen.map.style.visibility === 'hidden') {
+                    RZ.Screen.map.style.visibility = 'visible';
                     RZ.Game.paused = true;
                 } else {
-                    RZ.Screen.mapCanvas.style.visibility = 'hidden';
+                    RZ.Screen.map.style.visibility = 'hidden';
                     RZ.Game.paused = false;
                 }
             } 
@@ -504,17 +513,19 @@ RZ.Keyboard = {
 
 };
 
-RZ.Map = function (dungeon, context) {
-    this.context = context; // The canvas context to which you want to draw
+RZ.Map = function (dungeon, canvas) {
+    this.context = canvas.getContext('2d');
 
     // Declare static settings
     this.ROOM_SIZE = dungeon.ROOM_SIZE;
     this.INNER_ROOM_SIZE = this.ROOM_SIZE / 2;
     this.PADDING = this.INNER_ROOM_SIZE;
-    this.MAP_WIDTH = RZ.Game.dungeon.WIDTH;
-    this.MAP_HEIGHT = RZ.Game.dungeon.HEIGHT;
-    this.WIDTH_OFFSET = (RZ.Screen.width - this.MAP_WIDTH) / 2;
-    this.HEIGHT_OFFSET = (RZ.Screen.height - this.MAP_HEIGHT) / 2;
+    this.MAP_WIDTH = dungeon.WIDTH;
+    this.MAP_HEIGHT = dungeon.HEIGHT;
+    this.CANVAS_WIDTH = canvas.clientWidth;
+    this.CANVAS_HEIGHT = canvas.clientHeight;
+    this.WIDTH_OFFSET = (this.CANVAS_WIDTH - this.MAP_WIDTH) / 2;
+    this.HEIGHT_OFFSET = (this.CANVAS_HEIGHT - this.MAP_HEIGHT) / 2;
     this.START_ROOM_COLOR = '#88d800';
     this.DEFAULT_ROOM_COLOR = '#444444';
     this.BOSS_ROOM_COLOR = '#B53120';
@@ -533,7 +544,7 @@ RZ.Map.prototype = {
 
         // Add a plain background fill
         this.context.fillStyle = this.BG;
-        this.context.fillRect(0, 0, RZ.Screen.width, RZ.Screen.height);
+        this.context.fillRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
 
         // Add map background fill
         this.context.fillStyle = this.MAP_BG;
@@ -619,12 +630,12 @@ RZ.Map.prototype = {
     }
 };
 
-RZ.Player = function (context) {
-    this.context = context;
+RZ.Player = function (canvas) {
+    this.context = canvas.getContext('2d');
     this.width = 48; // Sprite width and height
     this.height = 48;
-    this.x = RZ.Screen.width / 2 - this.width / 2; // Put player in center, account for player size and heads up display
-    this.y = RZ.Screen.height / 2 - this.height / 2 + RZ.Room.prototype.headsUpDisplayHeight / 2;
+    this.x = canvas.clientWidth / 2 - this.width / 2; // Put player in center, account for player size and heads up display
+    this.y = canvas.clientHeight / 2 - this.height / 2 + RZ.Room.prototype.headsUpDisplayHeight / 2;
     this.sx = 0; // The upper left coordinates of the section of the
     this.sy = 0; // sprite sheet image to use (source x and y).
     this.speed = 4;
@@ -633,9 +644,8 @@ RZ.Player = function (context) {
 };
 
 RZ.Player.prototype = {
-    init: function () {
-        var that = RZ.Game.player;
-        that.context.drawImage(RZ.Assets.img.link, that.sx, that.sy, that.width, that.height, that.x, that.y, that.width, that.height);
+    drawOnce: function () {
+        this.context.drawImage(RZ.Assets.img.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
     },
 
     update: function () {
@@ -738,10 +748,10 @@ RZ.Room.prototype = {
             colsLen;
             
         context.fillStyle = '#000044';
-        context.fillRect(0, 0, RZ.Screen.width, RZ.Screen.height);
+        context.fillRect(0, 0, canvas.width, canvas.height);
         // Add a black background for the heads up display
         context.fillStyle = '#000000';
-        context.fillRect(0, 0, RZ.Screen.width, this.headsUpDisplayHeight);
+        context.fillRect(0, 0, canvas.width, this.headsUpDisplayHeight);
 
         for (var i = 0; i < rowsLen; i++) {
             colsLen = layout[i].length;
@@ -875,33 +885,31 @@ RZ.Room.prototype = {
 
 RZ.Screen = {
     init: function (id) {
-        this.fgCanvas = document.getElementById(id);
-        this.fg = this.fgCanvas.getContext('2d');
-        this.width = this.fgCanvas.clientWidth; // Get the width of the canvas element
-        this.height = this.fgCanvas.clientHeight; // and the height
-        
-        this.bgCanvas = document.createElement('canvas');
-        this.bgCanvas.id = 'RZbg';
-        this.bgCanvas.width = this.width;
-        this.bgCanvas.height = this.height;
-        this.bgCanvas.position = 'absolute';
-        this.bgCanvas.top = '0px';
-        this.bgCanvas.left = '0px';
-        this.bgCanvas.background = 'transparent';
-        this.bgCanvas.style.zIndex = -1;
-        document.body.appendChild(this.bgCanvas);
-        this.bg = this.bgCanvas.getContext('2d');
+        this.fg = document.getElementById(id);
 
-        this.mapCanvas = document.createElement('canvas');
-        this.mapCanvas.id = 'RZmap';
-        this.mapCanvas.width = this.width;
-        this.mapCanvas.height = this.height;
-        this.mapCanvas.position = 'absolute';
-        this.mapCanvas.top = '0px';
-        this.mapCanvas.left = '0px';
-        this.mapCanvas.background = 'transparent';
-        this.mapCanvas.style.visibility = 'hidden';
-        document.body.appendChild(this.mapCanvas);
-        this.map = this.mapCanvas.getContext('2d');
+        var width = this.fg.clientWidth, // Get the width of the canvas element
+            height = this.fg.clientHeight; // and the height
+        
+        this.bg = document.createElement('canvas');
+        this.bg.id = 'RZbg';
+        this.bg.width = width;
+        this.bg.height = height;
+        this.bg.position = 'absolute';
+        this.bg.top = '0px';
+        this.bg.left = '0px';
+        this.bg.background = 'transparent';
+        this.bg.style.zIndex = -1;
+        document.body.appendChild(this.bg);
+
+        this.map = document.createElement('canvas');
+        this.map.id = 'RZmap';
+        this.map.width = width;
+        this.map.height = height;
+        this.map.position = 'absolute';
+        this.map.top = '0px';
+        this.map.left = '0px';
+        this.map.background = 'transparent';
+        this.map.style.visibility = 'hidden';
+        document.body.appendChild(this.map);
     }
 };

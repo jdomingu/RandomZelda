@@ -54,11 +54,11 @@ RZ.Keyboard = {
             if (RZ.Keyboard.hasFired[keyCode] === false) {
                 RZ.Keyboard.hasFired[keyCode] = true;
 
-                if (RZ.Screen.mapCanvas.style.visibility === 'hidden') {
-                    RZ.Screen.mapCanvas.style.visibility = 'visible';
+                if (RZ.Screen.map.style.visibility === 'hidden') {
+                    RZ.Screen.map.style.visibility = 'visible';
                     RZ.Game.paused = true;
                 } else {
-                    RZ.Screen.mapCanvas.style.visibility = 'hidden';
+                    RZ.Screen.map.style.visibility = 'hidden';
                     RZ.Game.paused = false;
                 }
             } 

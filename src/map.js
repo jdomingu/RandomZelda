@@ -1,14 +1,16 @@
-RZ.Map = function (dungeon, context) {
-    this.context = context; // The canvas context to which you want to draw
+RZ.Map = function (dungeon, canvas) {
+    this.context = canvas.getContext('2d');
 
     // Declare static settings
     this.ROOM_SIZE = dungeon.ROOM_SIZE;
     this.INNER_ROOM_SIZE = this.ROOM_SIZE / 2;
     this.PADDING = this.INNER_ROOM_SIZE;
-    this.MAP_WIDTH = RZ.Game.dungeon.WIDTH;
-    this.MAP_HEIGHT = RZ.Game.dungeon.HEIGHT;
-    this.WIDTH_OFFSET = (RZ.Screen.width - this.MAP_WIDTH) / 2;
-    this.HEIGHT_OFFSET = (RZ.Screen.height - this.MAP_HEIGHT) / 2;
+    this.MAP_WIDTH = dungeon.WIDTH;
+    this.MAP_HEIGHT = dungeon.HEIGHT;
+    this.CANVAS_WIDTH = canvas.clientWidth;
+    this.CANVAS_HEIGHT = canvas.clientHeight;
+    this.WIDTH_OFFSET = (this.CANVAS_WIDTH - this.MAP_WIDTH) / 2;
+    this.HEIGHT_OFFSET = (this.CANVAS_HEIGHT - this.MAP_HEIGHT) / 2;
     this.START_ROOM_COLOR = '#88d800';
     this.DEFAULT_ROOM_COLOR = '#444444';
     this.BOSS_ROOM_COLOR = '#B53120';
@@ -27,7 +29,7 @@ RZ.Map.prototype = {
 
         // Add a plain background fill
         this.context.fillStyle = this.BG;
-        this.context.fillRect(0, 0, RZ.Screen.width, RZ.Screen.height);
+        this.context.fillRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
 
         // Add map background fill
         this.context.fillStyle = this.MAP_BG;

@@ -1,32 +1,30 @@
 RZ.Screen = {
     init: function (id) {
-        this.fgCanvas = document.getElementById(id);
-        this.fg = this.fgCanvas.getContext('2d');
-        this.width = this.fgCanvas.clientWidth; // Get the width of the canvas element
-        this.height = this.fgCanvas.clientHeight; // and the height
-        
-        this.bgCanvas = document.createElement('canvas');
-        this.bgCanvas.id = 'RZbg';
-        this.bgCanvas.width = this.width;
-        this.bgCanvas.height = this.height;
-        this.bgCanvas.position = 'absolute';
-        this.bgCanvas.top = '0px';
-        this.bgCanvas.left = '0px';
-        this.bgCanvas.background = 'transparent';
-        this.bgCanvas.style.zIndex = -1;
-        document.body.appendChild(this.bgCanvas);
-        this.bg = this.bgCanvas.getContext('2d');
+        this.fg = document.getElementById(id);
 
-        this.mapCanvas = document.createElement('canvas');
-        this.mapCanvas.id = 'RZmap';
-        this.mapCanvas.width = this.width;
-        this.mapCanvas.height = this.height;
-        this.mapCanvas.position = 'absolute';
-        this.mapCanvas.top = '0px';
-        this.mapCanvas.left = '0px';
-        this.mapCanvas.background = 'transparent';
-        this.mapCanvas.style.visibility = 'hidden';
-        document.body.appendChild(this.mapCanvas);
-        this.map = this.mapCanvas.getContext('2d');
+        var width = this.fg.clientWidth, // Get the width of the canvas element
+            height = this.fg.clientHeight; // and the height
+        
+        this.bg = document.createElement('canvas');
+        this.bg.id = 'RZbg';
+        this.bg.width = width;
+        this.bg.height = height;
+        this.bg.position = 'absolute';
+        this.bg.top = '0px';
+        this.bg.left = '0px';
+        this.bg.background = 'transparent';
+        this.bg.style.zIndex = -1;
+        document.body.appendChild(this.bg);
+
+        this.map = document.createElement('canvas');
+        this.map.id = 'RZmap';
+        this.map.width = width;
+        this.map.height = height;
+        this.map.position = 'absolute';
+        this.map.top = '0px';
+        this.map.left = '0px';
+        this.map.background = 'transparent';
+        this.map.style.visibility = 'hidden';
+        document.body.appendChild(this.map);
     }
 };
