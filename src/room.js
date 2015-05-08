@@ -35,7 +35,7 @@ RZ.Room.prototype = {
                 var x = i * this.width + this.wallWidth,
                     y = j * this.height + this.wallWidth + this.headsUpDisplayHeight;
 
-                context.drawImage(RZ.Assets.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
+                context.drawImage(RZ.Assets.img.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
             }
         }
     },

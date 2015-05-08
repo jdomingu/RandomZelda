@@ -14,7 +14,7 @@ RZ.Player = function (context) {
 RZ.Player.prototype = {
     init: function () {
         var that = RZ.Game.player;
-        that.context.drawImage(RZ.Assets.link, that.sx, that.sy, that.width, that.height, that.x, that.y, that.width, that.height);
+        that.context.drawImage(RZ.Assets.img.link, that.sx, that.sy, that.width, that.height, that.x, that.y, that.width, that.height);
     },
 
     update: function () {
@@ -23,7 +23,7 @@ RZ.Player.prototype = {
         this.toggleAnimation();
         this.move();
 
-        this.context.drawImage(RZ.Assets.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
+        this.context.drawImage(RZ.Assets.img.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
     },
 
     move: function () {

@@ -45,7 +45,16 @@ RZ.Game = {
 
 RZ.Assets = {
     init: function (callback) {
-        var loadCount = 2;
+        var img = [];
+        this.img = img;
+
+        var imagesToLoad = [
+            ['tiles', 'img/tiles.png'],
+            ['link', 'img/link.png']
+        ];
+
+        var imgLen = imagesToLoad.length;
+        var loadCount = imgLen;
 
         var isDoneLoading = function () {
             loadCount -= 1;
@@ -54,17 +63,17 @@ RZ.Assets = {
             }
         };
 
-        this.tiles = new Image();
-        this.tiles.onload = function () {
-            isDoneLoading();
+        var loadImage = function (imgName, imgPath) {
+            img[imgName] = new Image();
+            img[imgName].onload = function () {
+                isDoneLoading();
+            };
+            img[imgName].src = imgPath;
         };
-        this.tiles.src = 'img/tiles.png';
 
-        this.link = new Image();
-        this.link.onload = function () {
-            isDoneLoading();
-        };
-        this.link.src = 'img/link.png';
+        for (var i = 0; i < imgLen; i++) {
+            loadImage(imagesToLoad[i][0], imagesToLoad[i][1]);
+        }
     }
 };
 
@@ -626,7 +635,7 @@ RZ.Player = function (context) {
 RZ.Player.prototype = {
     init: function () {
         var that = RZ.Game.player;
-        that.context.drawImage(RZ.Assets.link, that.sx, that.sy, that.width, that.height, that.x, that.y, that.width, that.height);
+        that.context.drawImage(RZ.Assets.img.link, that.sx, that.sy, that.width, that.height, that.x, that.y, that.width, that.height);
     },
 
     update: function () {
@@ -635,7 +644,7 @@ RZ.Player.prototype = {
         this.toggleAnimation();
         this.move();
 
-        this.context.drawImage(RZ.Assets.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
+        this.context.drawImage(RZ.Assets.img.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
     },
 
     move: function () {
@@ -741,7 +750,7 @@ RZ.Room.prototype = {
                 var x = i * this.width + this.wallWidth,
                     y = j * this.height + this.wallWidth + this.headsUpDisplayHeight;
 
-                context.drawImage(RZ.Assets.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
+                context.drawImage(RZ.Assets.img.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
             }
         }
     },
