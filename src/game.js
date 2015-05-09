@@ -14,6 +14,7 @@ RZ.Game = {
         rooms = dungeon.generate(); // Generate random dungeon
         map = new RZ.Map(dungeon, RZ.Screen.map);
         this.currentRoom = dungeon.startRoom;
+		this.currentRoom.accessibleCoords = this.currentRoom.generateAccessibleCoords();
         this.player = new RZ.Player(RZ.Screen.fg);
 
         return [dungeon.grid, rooms, map];

@@ -2,7 +2,6 @@ RZ.Room = function () {
     // Set default values
     this.roomType = 'seed'; // Or 'branch', 'fake', 'boss'
     this.roomLayout = 'empty'; // Or 'entrance', 'four', 'five', etc.
-    this.accessibleCoords = this.defaultAccessibleCoords;
     this.door = {};
     this.door.up = 'none';  // Or 'open', 'locked'
     this.door.down = 'none';
@@ -45,20 +44,46 @@ RZ.Room.prototype = {
         [1,1,1,1,1,1,1,1,1,1,1],
         [1,1,1,1,1,1,1,1,1,1,1],
         [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,1,0,1,0,1,0,1,1],
         [1,1,0,0,0,0,0,0,0,1,1],
         [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,1,0,1,0,1,0,1,1],
         [1,1,0,0,0,0,0,0,0,1,1],
         [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,1,0,1,0,1,0,1,1],
         [1,1,0,0,0,0,0,0,0,1,1],
         [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,1,0,1,0,1,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
         [1,1,0,0,0,0,0,0,0,1,1],
         [1,1,1,1,1,1,1,1,1,1,1],
         [1,1,1,1,1,1,1,1,1,1,1]
     ],
+
+	generateAccessibleCoords: function () {
+		var accessibleCoords = this.defaultAccessibleCoords.slice(),
+			layout = this.layouts[this.roomLayout],
+			rowsLen = layout.length,
+			colsLen;
+        
+        if (this.roomLayout !== 'empty') { // If the room is empty, don't iterate
+            for (var i = 0; i < rowsLen; i++) { // through the tiles
+                colsLen = layout[i].length;
+
+                for (var j = 0; j < colsLen; j++) {
+                    var wallWidthInTiles = this.wallWidth / this.width,
+                        accessible;
+
+                    if (layout[i][j] === 0 || layout[i][j] === 4) {
+                        accessible = 0;
+                    } else {
+                        accessible = 1;
+                    }
+                    accessibleCoords[i + 2][j + 2] = accessible;
+                }
+            }
+        }
+		return accessibleCoords;
+	},
 
     isAccessible: function (x, y) {
         var coords = this.convertPixelsToCoords(x, y); 
