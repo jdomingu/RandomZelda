@@ -1,14 +1,15 @@
 RZ.Screen = {
     init: function (id) {
-        var mainDiv = document.getElementById(id),
-            headsUpDisplayHeight = 192,
-            width = mainDiv.clientWidth, // Get the width of the canvas element
-            height = mainDiv.clientHeight, // and the height
-            heightMinusHUD = height - headsUpDisplayHeight; // and the height
+        var mainDiv = document.getElementById(id), // The div serves as a container
+            headsUpDisplayHeight = 192,            // that hides overflow
+            width = mainDiv.clientWidth, // Get the dimensions of the div
+            height = mainDiv.clientHeight, 
+            heightMinusHUD = height - headsUpDisplayHeight;
         
         this.mapStartTop = 0 - heightMinusHUD;
         this.roomStartTop = headsUpDisplayHeight;
 
+        // The map canvas also contains the HUD and is positioned off-screen by default
         this.map = document.createElement('canvas');
         this.map.id = 'RZmap';
         this.map.width = width;
@@ -21,6 +22,7 @@ RZ.Screen = {
         this.map.style.zIndex = 0;
         mainDiv.appendChild(this.map);
         
+        // The foreground canvas is for the player and other moving objects
         this.fg = document.createElement('canvas');
         this.fg.id = 'RZfg';
         this.fg.width = width;
@@ -32,6 +34,7 @@ RZ.Screen = {
         this.fg.style.zIndex = -1;
         mainDiv.appendChild(this.fg);
 
+        //The background canvas is for room tiles
         this.bg = document.createElement('canvas');
         this.bg.id = 'RZbg';
         this.bg.width = width;
@@ -43,10 +46,11 @@ RZ.Screen = {
         this.bg.style.zIndex = -2;
         mainDiv.appendChild(this.bg);
 
+        // Canvas contents display as a fallback if canvas isn't supported
         this.bg.innerHTML += '<p>Ensure that your browser is compatible with canvas</p>';
     },
 
-    mapTransition: function (direction) {
+    mapTransition: function (direction) { // When the map moves into view, the bg and fg move out
         if (direction === 'coming') {
             RZ.Screen.transition(RZ.Screen.map, RZ.Screen.map.style.top, 0, 'top');
             RZ.Screen.transition(RZ.Screen.fg, RZ.Screen.fg.style.top, RZ.Screen.map.height, 'top');
@@ -60,11 +64,11 @@ RZ.Screen = {
 
     transition: function (canvas, start, end, side) {
         var diff = parseInt(start) - end,
-            dist = 5;
+            dist = 5; // Increment to move the canvas for each call
 
         if (Math.abs(diff) < dist) {
             canvas.style[side] = end;
-			RZ.Game.locked = false;
+			RZ.Game.locked = false; // Accept player input when the transition ends
             return;
         } else if (diff < 0) {
             canvas.style[side] = parseInt(start) + dist;

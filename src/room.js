@@ -20,42 +20,44 @@ RZ.Room.prototype = {
             layout = this.layouts[this.roomLayout],
             rowsLen = layout.length,
             colsLen;
-            
+        
+        // Temporary fill until walls are added
         context.fillStyle = '#000044';
         context.fillRect(0, 0, canvas.width, canvas.height);
-        // Add a black background for the heads up display
-        //context.fillStyle = '#000000';
-        //context.fillRect(0, 0, canvas.width, this.headsUpDisplayHeight);
-
+        
         for (var i = 0; i < rowsLen; i++) {
             colsLen = layout[i].length;
 
             for (var j = 0; j < colsLen; j++) {
                 var x = i * this.width + this.wallWidth,
-                    y = j * this.height + this.wallWidth;
+                    y = j * this.height + this.wallWidth,
+                    sx = this.tiles[layout[i][j]][1],
+                    sy = this.tiles[layout[i][j]][0];
 
-                context.drawImage(RZ.Assets.img.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
+                context.drawImage(RZ.Assets.img.tiles, sx, sy, this.width, this.height, x, y, this.width, this.height);
             }
         }
     },
 
+    // TO DO: Replace with empty coords except for walls, then generate 
+    // correct coords from roomLayout and doors
     defaultAccessibleCoords: [
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,1,0,1,0,1,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,1,0,1,0,1,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,1,0,1,0,1,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,1,0,1,0,1,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0]
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,1,0,1,0,1,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,1,0,1,0,1,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,1,0,1,0,1,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,1,0,1,0,1,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1]
     ],
 
     isAccessible: function (x, y) {

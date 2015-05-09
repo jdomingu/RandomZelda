@@ -28,7 +28,7 @@ RZ.Player.prototype = {
     },
 
     move: function () {
-        /* Up and down/left and right movement is mutually exclusive
+        /* Up/down and left/right movement is mutually exclusive
          * Do not allow diagonal movement (if the y value changes, do not change the x value)
          * At the edge of the screen, the player can hold two keys without being frozen in place
          * E.g. If the player walks up to the top, holding up and right simultaneously allows 
@@ -47,8 +47,6 @@ RZ.Player.prototype = {
             this.sx = 0;
         } 
         
-        this.keepInBoundsY();
-
         if (origY === this.y) {
             if (RZ.Keyboard.isDown('A')) {
                 if (RZ.Game.currentRoom.isAccessible(this.x + - this.speed, this.y + this.width / 2)) {
@@ -61,32 +59,6 @@ RZ.Player.prototype = {
                 }
                 this.sx = 144;
             }
-        }
-
-        this.keepInBoundsX();
-    },
-
-    keepInBoundsX: function () {
-        var screenWidthMinusPlayer = this.canvasWidth - this.width;
-
-        if (this.x <= 0) {
-            this.x = 0;
-        }
-        
-        if (this.x >= screenWidthMinusPlayer) {
-            this.x = screenWidthMinusPlayer;
-        }
-    },    
-    
-    keepInBoundsY: function () {
-        var screenHeightMinusPlayer = this.canvasHeight - this.height;
-
-        if (this.y <= 0) {
-            this.y = 0;
-        }
-
-        if (this.y >= screenHeightMinusPlayer) {
-            this.y = screenHeightMinusPlayer;
         }
     },
 

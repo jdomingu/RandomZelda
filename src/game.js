@@ -43,11 +43,11 @@ RZ.Game = {
     main: function () {
         window.requestAnimationFrame(RZ.Game.main);
 
-        if (RZ.Game.locked === false) {   // Do not respond to toggling the map until 
-            RZ.Keyboard.checkMapToggle(); // the screen transition ends
+        if (RZ.Game.locked === false) {   // Do not accept input during screen transitions
+            RZ.Keyboard.checkMapToggle();
 
 			if (RZ.Game.paused === false && // Do not respond to player movement when paused
-				RZ.Keyboard.areMovementKeysDown() === true) { // Only update the player if he moves
+				RZ.Keyboard.areMovementKeysDown() === true) { // Only update when the player moves
 					RZ.Game.player.update();
             }
         }

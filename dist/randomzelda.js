@@ -43,11 +43,11 @@ RZ.Game = {
     main: function () {
         window.requestAnimationFrame(RZ.Game.main);
 
-        if (RZ.Game.locked === false) {   // Do not respond to toggling the map until 
-            RZ.Keyboard.checkMapToggle(); // the screen transition ends
+        if (RZ.Game.locked === false) {   // Do not accept input during screen transitions
+            RZ.Keyboard.checkMapToggle();
 
 			if (RZ.Game.paused === false && // Do not respond to player movement when paused
-				RZ.Keyboard.areMovementKeysDown() === true) { // Only update the player if he moves
+				RZ.Keyboard.areMovementKeysDown() === true) { // Only update when the player moves
 					RZ.Game.player.update();
             }
         }
@@ -664,7 +664,7 @@ RZ.Player.prototype = {
     },
 
     move: function () {
-        /* Up and down/left and right movement is mutually exclusive
+        /* Up/down and left/right movement is mutually exclusive
          * Do not allow diagonal movement (if the y value changes, do not change the x value)
          * At the edge of the screen, the player can hold two keys without being frozen in place
          * E.g. If the player walks up to the top, holding up and right simultaneously allows 
@@ -683,8 +683,6 @@ RZ.Player.prototype = {
             this.sx = 0;
         } 
         
-        this.keepInBoundsY();
-
         if (origY === this.y) {
             if (RZ.Keyboard.isDown('A')) {
                 if (RZ.Game.currentRoom.isAccessible(this.x + - this.speed, this.y + this.width / 2)) {
@@ -697,32 +695,6 @@ RZ.Player.prototype = {
                 }
                 this.sx = 144;
             }
-        }
-
-        this.keepInBoundsX();
-    },
-
-    keepInBoundsX: function () {
-        var screenWidthMinusPlayer = this.canvasWidth - this.width;
-
-        if (this.x <= 0) {
-            this.x = 0;
-        }
-        
-        if (this.x >= screenWidthMinusPlayer) {
-            this.x = screenWidthMinusPlayer;
-        }
-    },    
-    
-    keepInBoundsY: function () {
-        var screenHeightMinusPlayer = this.canvasHeight - this.height;
-
-        if (this.y <= 0) {
-            this.y = 0;
-        }
-
-        if (this.y >= screenHeightMinusPlayer) {
-            this.y = screenHeightMinusPlayer;
         }
     },
 
@@ -758,42 +730,44 @@ RZ.Room.prototype = {
             layout = this.layouts[this.roomLayout],
             rowsLen = layout.length,
             colsLen;
-            
+        
+        // Temporary fill until walls are added
         context.fillStyle = '#000044';
         context.fillRect(0, 0, canvas.width, canvas.height);
-        // Add a black background for the heads up display
-        //context.fillStyle = '#000000';
-        //context.fillRect(0, 0, canvas.width, this.headsUpDisplayHeight);
-
+        
         for (var i = 0; i < rowsLen; i++) {
             colsLen = layout[i].length;
 
             for (var j = 0; j < colsLen; j++) {
                 var x = i * this.width + this.wallWidth,
-                    y = j * this.height + this.wallWidth;
+                    y = j * this.height + this.wallWidth,
+                    sx = this.tiles[layout[i][j]][1],
+                    sy = this.tiles[layout[i][j]][0];
 
-                context.drawImage(RZ.Assets.img.tiles, this.tiles[layout[i][j]][1], this.tiles[layout[i][j]][0], this.width, this.height, x, y, this.width, this.height);
+                context.drawImage(RZ.Assets.img.tiles, sx, sy, this.width, this.height, x, y, this.width, this.height);
             }
         }
     },
 
+    // TO DO: Replace with empty coords except for walls, then generate 
+    // correct coords from roomLayout and doors
     defaultAccessibleCoords: [
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,1,0,1,0,1,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,1,0,1,0,1,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,1,0,1,0,1,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,1,0,1,0,1,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0]
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,1,0,1,0,1,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,1,0,1,0,1,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,1,0,1,0,1,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,1,0,1,0,1,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1]
     ],
 
     isAccessible: function (x, y) {
@@ -936,15 +910,16 @@ RZ.Room.prototype = {
 
 RZ.Screen = {
     init: function (id) {
-        var mainDiv = document.getElementById(id),
-            headsUpDisplayHeight = 192,
-            width = mainDiv.clientWidth, // Get the width of the canvas element
-            height = mainDiv.clientHeight, // and the height
-            heightMinusHUD = height - headsUpDisplayHeight; // and the height
+        var mainDiv = document.getElementById(id), // The div serves as a container
+            headsUpDisplayHeight = 192,            // that hides overflow
+            width = mainDiv.clientWidth, // Get the dimensions of the div
+            height = mainDiv.clientHeight, 
+            heightMinusHUD = height - headsUpDisplayHeight;
         
         this.mapStartTop = 0 - heightMinusHUD;
         this.roomStartTop = headsUpDisplayHeight;
 
+        // The map canvas also contains the HUD and is positioned off-screen by default
         this.map = document.createElement('canvas');
         this.map.id = 'RZmap';
         this.map.width = width;
@@ -957,6 +932,7 @@ RZ.Screen = {
         this.map.style.zIndex = 0;
         mainDiv.appendChild(this.map);
         
+        // The foreground canvas is for the player and other moving objects
         this.fg = document.createElement('canvas');
         this.fg.id = 'RZfg';
         this.fg.width = width;
@@ -968,6 +944,7 @@ RZ.Screen = {
         this.fg.style.zIndex = -1;
         mainDiv.appendChild(this.fg);
 
+        //The background canvas is for room tiles
         this.bg = document.createElement('canvas');
         this.bg.id = 'RZbg';
         this.bg.width = width;
@@ -979,10 +956,11 @@ RZ.Screen = {
         this.bg.style.zIndex = -2;
         mainDiv.appendChild(this.bg);
 
+        // Canvas contents display as a fallback if canvas isn't supported
         this.bg.innerHTML += '<p>Ensure that your browser is compatible with canvas</p>';
     },
 
-    mapTransition: function (direction) {
+    mapTransition: function (direction) { // When the map moves into view, the bg and fg move out
         if (direction === 'coming') {
             RZ.Screen.transition(RZ.Screen.map, RZ.Screen.map.style.top, 0, 'top');
             RZ.Screen.transition(RZ.Screen.fg, RZ.Screen.fg.style.top, RZ.Screen.map.height, 'top');
@@ -996,11 +974,11 @@ RZ.Screen = {
 
     transition: function (canvas, start, end, side) {
         var diff = parseInt(start) - end,
-            dist = 5;
+            dist = 5; // Increment to move the canvas for each call
 
         if (Math.abs(diff) < dist) {
             canvas.style[side] = end;
-			RZ.Game.locked = false;
+			RZ.Game.locked = false; // Accept player input when the transition ends
             return;
         } else if (diff < 0) {
             canvas.style[side] = parseInt(start) + dist;
