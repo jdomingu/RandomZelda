@@ -1,6 +1,8 @@
 # RandomZelda
 Generate random maps for Legend of Zelda dungeons.
 
+This is a work-in progress, but you can view the current version here:
+http://jdomingu.github.io/RandomZelda/
 ## Install
 Install npm on your machine, then run `npm install` to download the dependencies.
 
