@@ -665,38 +665,80 @@ RZ.Player.prototype = {
     },
 
     move: function () {
-        /* Up/down and left/right movement is mutually exclusive
-         * Do not allow diagonal movement (if the y value changes, do not change the x value)
-         * At the edge of the screen, the player can hold two keys without being frozen in place
-         * E.g. If the player walks up to the top, holding up and right simultaneously allows 
-         * the player to move right */
-        var origY = this.y;
+        /* Gets two pairs of coordinates in the direction of movement and
+         * ensures that the adjacent tile or tiles can be entered.
+         * To make going around corners easier, contract the coordinates 
+         * toward the player's center by an amount equal to the player's speed. */
+        var origY = this.y,
+            xAlign = this.getGridAlign(this.x),
+            yAlign = this.getGridAlign(this.y);
 
-        if (RZ.Keyboard.isDown('W')) {
-            if (RZ.Game.currentRoom.isAccessible(this.x + this.width / 2, this.y + this.width / 2 - this.speed)) {
+        if (RZ.Keyboard.isDown('W')) { // Ex. When going up, get the upper left and upper
+            if (RZ.Game.currentRoom.isAccessible(this.x + this.speed, // right coordinates
+                                                 this.y + this.width / 2 - this.speed) &&
+               (RZ.Game.currentRoom.isAccessible(this.x + this.width - this.speed, 
+                                                 this.y + this.width / 2 - this.speed))) {
+
                 this.y -= this.speed;
+                this.x += xAlign;
             }
             this.sx = 96;
         } else if (RZ.Keyboard.isDown('S')) {
-            if (RZ.Game.currentRoom.isAccessible(this.x + this.width / 2, this.y + this.width  + this.speed)) {
+            if (RZ.Game.currentRoom.isAccessible(this.x + this.speed, 
+                                                 this.y + this.width  + this.speed) &&
+               (RZ.Game.currentRoom.isAccessible(this.x + this.width - this.speed, 
+                                                 this.y + this.width  + this.speed)) ) {
+
                 this.y += this.speed;
+                this.x += xAlign; 
             }
             this.sx = 0;
         } 
         
         if (origY === this.y) {
-            if (RZ.Keyboard.isDown('A')) {
-                if (RZ.Game.currentRoom.isAccessible(this.x + - this.speed, this.y + this.width / 2)) {
+        /* Only allow lateral movement if not moving vertically (do not allow diagonal movement)
+         * At the edge of the screen, the player can hold two keys without being frozen in place
+         * E.g. If the player walks up to the top, holding up and right simultaneously allows 
+         * the player to move right */
+            if (RZ.Keyboard.isDown('A')) { 
+                 if (RZ.Game.currentRoom.isAccessible(this.x - this.speed, 
+                                                      this.y + this.width / 2 + this.speed) &&
+                    (RZ.Game.currentRoom.isAccessible(this.x - this.speed, 
+                                                      this.y + this.width - this.speed))) {
+
                     this.x -= this.speed;
+                    this.y += yAlign;
                 }
                 this.sx = 48;
             } else if (RZ.Keyboard.isDown('D')) {
-                if (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed, this.y + this.width / 2)) {
+                if (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed, 
+                                                     this.y + this.width / 2 + this.speed) &&
+                   (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed, 
+                                                     this.y + this.width - this.speed))) {
+
                     this.x += this.speed;
+                    this.y += yAlign;
                 }
                 this.sx = 144;
             }
         }
+    },
+
+    getGridAlign: function (coord) {
+        /* When the player is mis-aligned with the grid, slowly snap
+         * the player back to make movement easier. */
+        var rem = coord % 24,
+            align;
+
+        if (rem === 0) {
+            align = 0;
+        } else if (rem < 12) {
+            align = 0 - this.speed;
+        } else {
+            align = this.speed;
+        }
+
+        return align;
     },
 
     toggleAnimation: function () {
