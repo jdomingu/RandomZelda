@@ -6,6 +6,7 @@ RZ.Screen = {
             height = mainDiv.clientHeight, 
             heightMinusHUD = height - headsUpDisplayHeight;
         
+        this.color = this.getRandomColor(); 
         this.mapStartTop = 0 - heightMinusHUD;
         this.roomStartTop = headsUpDisplayHeight;
 
@@ -48,6 +49,18 @@ RZ.Screen = {
 
         // Canvas contents display as a fallback if canvas isn't supported
         this.bg.innerHTML += '<p>Ensure that your browser is compatible with canvas</p>';
+    },
+
+    getRandomColor: function () {
+        var colors = ['#ffff00',
+                      '#ffffff',
+                      '#ff0000',
+                      '#00ff00',
+                      '#0000ff',
+                      '#00ffff',
+                      '#ffff00'];
+
+        return colors[Math.floor(Math.random() * colors.length)];
     },
 
     mapTransition: function (direction) { // When the map moves into view, the bg and fg move out

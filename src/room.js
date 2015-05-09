@@ -20,9 +20,23 @@ RZ.Room.prototype = {
             rowsLen = layout.length,
             colsLen;
         
-        // Temporary fill until walls are added
-        context.fillStyle = '#000044';
+        context.drawImage(RZ.Assets.img.tiles, 0, 96, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+        this.drawLayer(canvas, this.tiles);
+
+        context.fillStyle = RZ.Screen.color;
+        context.globalAlpha = 0.5;
         context.fillRect(0, 0, canvas.width, canvas.height);
+        context.globalAlpha = 1.0;
+
+        this.drawLayer(canvas, this.tiles_contrast);
+        context.drawImage(RZ.Assets.img.tiles, 0, 624, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+    },
+
+    drawLayer: function (canvas, tiles) {
+        var context = canvas.getContext('2d'),
+            layout = this.layouts[this.roomLayout],
+            rowsLen = layout.length,
+            colsLen;
         
         for (var i = 0; i < rowsLen; i++) {
             colsLen = layout[i].length;
@@ -30,8 +44,8 @@ RZ.Room.prototype = {
             for (var j = 0; j < colsLen; j++) {
                 var x = i * this.width + this.wallWidth,
                     y = j * this.height + this.wallWidth,
-                    sx = this.tiles[layout[i][j]][1],
-                    sy = this.tiles[layout[i][j]][0];
+                    sx = tiles[layout[i][j]][1],
+                    sy = tiles[layout[i][j]][0];
 
                 context.drawImage(RZ.Assets.img.tiles, sx, sy, this.width, this.height, x, y, this.width, this.height);
             }
@@ -112,6 +126,7 @@ RZ.Room.prototype = {
      * 3 - Left-facing statue
      * 4 - Speckled tile
      * 5 - Stairs
+     * 6 - Water
      */
     tiles: {
         '0': [0, 0],
@@ -119,8 +134,20 @@ RZ.Room.prototype = {
         '2': [0, 96],
         '3': [0, 144],
         '4': [0, 192],
-        '5': [0, 240]
+        '5': [0, 240],
+        '6': [0, 288]
     },
+
+    tiles_contrast: {
+        '0': [48, 0],
+        '1': [48, 48],
+        '2': [48, 96],
+        '3': [48, 144],
+        '4': [48, 192],
+        '5': [48, 240],
+        '6': [48, 288]
+    },
+
 
     /* Layout Legend
      * Entrance - start room with statues
@@ -129,6 +156,7 @@ RZ.Room.prototype = {
      * Two- two islands of blocks on the sides
      * Four - four blocks near the corners
      * Five - five groups of blocks in an X formation
+     * Brackets - water fills two bracket shaped trenches
      */
     layouts: {
         'entrance': [
@@ -218,6 +246,21 @@ RZ.Room.prototype = {
             [0,0,0,0,0,0,0],
             [0,1,0,0,0,1,0],
             [0,1,0,0,0,1,0],
+            [0,0,0,0,0,0,0]
+        ],
+
+        'brackets': [
+            [0,0,0,0,0,0,0],
+            [0,6,6,6,6,6,0],
+            [0,6,0,0,0,6,0],
+            [0,6,0,6,0,6,0],
+            [0,0,0,6,0,0,0],
+            [0,0,0,6,0,0,0],
+            [0,0,0,6,0,0,0],
+            [0,0,0,6,0,0,0],
+            [0,6,0,6,0,6,0],
+            [0,6,0,0,0,6,0],
+            [0,6,6,6,6,6,0],
             [0,0,0,0,0,0,0]
         ]
     }
