@@ -45,11 +45,10 @@ RZ.Game = {
 
         if (RZ.Game.locked === false) {   // Do not respond to toggling the map until 
             RZ.Keyboard.checkMapToggle(); // the screen transition ends
-        }
 
-        if (RZ.Game.paused === false) { // Do not respond to player movement when paused
-            if (RZ.Keyboard.areMovementKeysDown()) {
-                RZ.Game.player.update();
+			if (RZ.Game.paused === false && // Do not respond to player movement when paused
+				RZ.Keyboard.areMovementKeysDown() === true) { // Only update the player if he moves
+					RZ.Game.player.update();
             }
         }
     }
@@ -503,13 +502,12 @@ RZ.Keyboard = {
 
             if (RZ.Keyboard.hasFired[keyCode] === false) {
                 RZ.Keyboard.hasFired[keyCode] = true;
+				RZ.Game.locked = true;
 
                 if (RZ.Game.paused === false) {
-                    RZ.Game.locked = true;
                     RZ.Game.paused = true;
                     RZ.Screen.mapTransition('coming');
                 } else {
-                    RZ.Game.locked = true;
                     RZ.Game.paused = false;
                     RZ.Screen.mapTransition('going');
                 }
@@ -1001,8 +999,8 @@ RZ.Screen = {
             dist = 5;
 
         if (Math.abs(diff) < dist) {
-            RZ.Game.locked = false;
             canvas.style[side] = end;
+			RZ.Game.locked = false;
             return;
         } else if (diff < 0) {
             canvas.style[side] = parseInt(start) + dist;

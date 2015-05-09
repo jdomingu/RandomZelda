@@ -53,13 +53,12 @@ RZ.Keyboard = {
 
             if (RZ.Keyboard.hasFired[keyCode] === false) {
                 RZ.Keyboard.hasFired[keyCode] = true;
+				RZ.Game.locked = true;
 
                 if (RZ.Game.paused === false) {
-                    RZ.Game.locked = true;
                     RZ.Game.paused = true;
                     RZ.Screen.mapTransition('coming');
                 } else {
-                    RZ.Game.locked = true;
                     RZ.Game.paused = false;
                     RZ.Screen.mapTransition('going');
                 }

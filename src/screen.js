@@ -63,8 +63,8 @@ RZ.Screen = {
             dist = 5;
 
         if (Math.abs(diff) < dist) {
-            RZ.Game.locked = false;
             canvas.style[side] = end;
+			RZ.Game.locked = false;
             return;
         } else if (diff < 0) {
             canvas.style[side] = parseInt(start) + dist;

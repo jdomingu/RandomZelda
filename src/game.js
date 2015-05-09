@@ -45,11 +45,10 @@ RZ.Game = {
 
         if (RZ.Game.locked === false) {   // Do not respond to toggling the map until 
             RZ.Keyboard.checkMapToggle(); // the screen transition ends
-        }
 
-        if (RZ.Game.paused === false) { // Do not respond to player movement when paused
-            if (RZ.Keyboard.areMovementKeysDown()) {
-                RZ.Game.player.update();
+			if (RZ.Game.paused === false && // Do not respond to player movement when paused
+				RZ.Keyboard.areMovementKeysDown() === true) { // Only update the player if he moves
+					RZ.Game.player.update();
             }
         }
     }
