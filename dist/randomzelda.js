@@ -871,6 +871,14 @@ RZ.Room.prototype = {
         [1,1,1,1,1,1,1,1,1,1,1]
     ],
 
+    doorPixelCoords: {
+        // [[upper left x, upper left y], [lower right x, lower right y]
+        left: [[0, 264], [96, 288]], // Left and right doors have narrower heights 
+        up: [[360, 0], [408, 96]],  // because Link can usually overlap objects
+        right: [[672, 264], [768, 288]], // to give the appearance of him walking
+        down: [[360, 432], [408, 528]]  // in front of things
+    }, 
+
     draw: function (canvas) {
         var context = canvas.getContext('2d'),
             layout = this.layouts[this.roomLayout],
@@ -977,6 +985,7 @@ RZ.Room.prototype = {
                 }
             }
         }
+
 		return accessibleCoords;
 	},
 
@@ -985,13 +994,28 @@ RZ.Room.prototype = {
 
         if (coords[0] >= 0 && coords[0] < this.accessibleCoords.length &&
                 coords[1] >= 0 && coords[1] < this.accessibleCoords[coords[0]].length) {
-            if (this.accessibleCoords[coords[0]][coords[1]] === 0) {
+            if (this.accessibleCoords[coords[0]][coords[1]] === 0 ||
+                    this.isAccessibleDoor(x, y) === true) {
                 return true;
             } 
         }
 
         return false;
     },
+
+    isAccessibleDoor: function (x, y) {
+        // Is this space a door that Link can walk into? Compare his coordinates
+        // to the upper left and lower right door coordinates
+        for (var door in this.door) {
+            if (this.door[door] === 'open') {
+                if (x >= this.doorPixelCoords[door][0][0] && x <= this.doorPixelCoords[door][1][0] &&
+                    y >= this.doorPixelCoords[door][0][1] && y <= this.doorPixelCoords[door][1][1]) {
+                    return true;
+                }
+            }
+        }
+    },
+
 
     convertPixelsToCoords: function (x, y) {
         var coordX = Math.floor(x / this.width),
