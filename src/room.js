@@ -35,9 +35,9 @@ RZ.Room.prototype = {
 
     doorPixelCoords: {
         // [[upper left x, upper left y], [lower right x, lower right y]
-        left: [[0, 264], [96, 288]], // Left and right doors have narrower heights 
+        left: [[0, 250], [96, 295]], // Left and right doors have narrower heights 
         up: [[360, 0], [408, 96]],  // because Link can usually overlap objects
-        right: [[672, 264], [768, 288]], // to give the appearance of him walking
+        right: [[672, 250], [768, 295]], // to give the appearance of him walking
         down: [[360, 432], [408, 528]]  // in front of things
     }, 
 

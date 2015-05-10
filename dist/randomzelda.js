@@ -873,9 +873,9 @@ RZ.Room.prototype = {
 
     doorPixelCoords: {
         // [[upper left x, upper left y], [lower right x, lower right y]
-        left: [[0, 264], [96, 288]], // Left and right doors have narrower heights 
+        left: [[0, 250], [96, 295]], // Left and right doors have narrower heights 
         up: [[360, 0], [408, 96]],  // because Link can usually overlap objects
-        right: [[672, 264], [768, 288]], // to give the appearance of him walking
+        right: [[672, 250], [768, 295]], // to give the appearance of him walking
         down: [[360, 432], [408, 528]]  // in front of things
     }, 
 
@@ -1033,7 +1033,8 @@ RZ.Room.prototype = {
  * Two- two islands of blocks on the sides
  * Four - four blocks near the corners
  * Five - five groups of blocks in an X formation
- * Brackets - water fills two bracket shaped trenches
+ * Water Brackets - water fills two bracket shaped trenches
+ * Water Path - a path connects the doors, otherwise the room is all water
  */
 RZ.Room.prototype.layouts = {
     'entrance': [
@@ -1105,8 +1106,8 @@ RZ.Room.prototype.layouts = {
         [0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0],
-        [0,0,1,0,1,0,0],
         [0,0,0,0,0,0,0],
+        [0,0,1,0,1,0,0],
         [0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0]
     ],
@@ -1126,7 +1127,7 @@ RZ.Room.prototype.layouts = {
         [0,0,0,0,0,0,0]
     ],
 
-    'brackets': [
+    'water_brackets': [
         [0,0,0,0,0,0,0],
         [0,6,6,6,6,6,0],
         [0,6,0,0,0,6,0],
@@ -1139,7 +1140,22 @@ RZ.Room.prototype.layouts = {
         [0,6,0,0,0,6,0],
         [0,6,6,6,6,6,0],
         [0,0,0,0,0,0,0]
-    ]
+    ],
+
+    'water_path': [
+        [6,6,6,0,6,6,6],
+        [6,0,0,0,0,0,6],
+        [6,0,6,6,6,6,6],
+        [6,0,0,0,0,0,6],
+        [6,6,6,6,6,0,6],
+        [0,0,0,0,6,0,0],
+        [0,0,6,0,0,0,0],
+        [6,0,6,6,6,6,6],
+        [6,0,0,0,0,0,6],
+        [6,6,6,6,6,0,6],
+        [6,0,0,0,0,0,6],
+        [6,6,6,0,6,6,6]
+    ] 
 };
 
 RZ.Screen = {

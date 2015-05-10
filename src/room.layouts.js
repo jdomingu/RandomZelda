@@ -5,7 +5,8 @@
  * Two- two islands of blocks on the sides
  * Four - four blocks near the corners
  * Five - five groups of blocks in an X formation
- * Brackets - water fills two bracket shaped trenches
+ * Water Brackets - water fills two bracket shaped trenches
+ * Water Path - a path connects the doors, otherwise the room is all water
  */
 RZ.Room.prototype.layouts = {
     'entrance': [
@@ -77,8 +78,8 @@ RZ.Room.prototype.layouts = {
         [0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0],
-        [0,0,1,0,1,0,0],
         [0,0,0,0,0,0,0],
+        [0,0,1,0,1,0,0],
         [0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0]
     ],
@@ -98,7 +99,7 @@ RZ.Room.prototype.layouts = {
         [0,0,0,0,0,0,0]
     ],
 
-    'brackets': [
+    'water_brackets': [
         [0,0,0,0,0,0,0],
         [0,6,6,6,6,6,0],
         [0,6,0,0,0,6,0],
@@ -111,5 +112,20 @@ RZ.Room.prototype.layouts = {
         [0,6,0,0,0,6,0],
         [0,6,6,6,6,6,0],
         [0,0,0,0,0,0,0]
-    ]
+    ],
+
+    'water_path': [
+        [6,6,6,0,6,6,6],
+        [6,0,0,0,0,0,6],
+        [6,0,6,6,6,6,6],
+        [6,0,0,0,0,0,6],
+        [6,6,6,6,6,0,6],
+        [0,0,0,0,6,0,0],
+        [0,0,6,0,0,0,0],
+        [6,0,6,6,6,6,6],
+        [6,0,0,0,0,0,6],
+        [6,6,6,6,6,0,6],
+        [6,0,0,0,0,0,6],
+        [6,6,6,0,6,6,6]
+    ] 
 };
