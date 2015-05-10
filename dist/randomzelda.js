@@ -883,7 +883,6 @@ RZ.Room.prototype = {
         
         context.drawImage(RZ.Assets.img.tiles, walls[0], walls[1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
         this.drawLayer(canvas, RZ.Assets.legend.tiles);
-        this.drawDoors(context, doors);
 
         context.fillStyle = RZ.Screen.color;
         context.globalAlpha = 0.5;
@@ -892,7 +891,7 @@ RZ.Room.prototype = {
 
         this.drawLayer(canvas, RZ.Assets.legend.tiles_contrast);
         context.drawImage(RZ.Assets.img.tiles, walls_contrast[0], walls_contrast[1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-        this.drawDoors(context, doors_contrast);
+        this.drawDoors(context, doors, doors_contrast);
     },
 
     drawLayer: function (canvas, tiles) {
@@ -915,7 +914,13 @@ RZ.Room.prototype = {
         }
     },
 
-    drawDoors: function (context, doors_legend) {
+    drawDoors: function (context, doors, doors_contrast) {
+        this.drawDoorsLayer(context, doors);
+        this.drawDoorsFillLayer(context, doors);
+        this.drawDoorsLayer(context, doors_contrast);
+    },
+
+    drawDoorsLayer: function (context, doors_legend) {
         var sx, sy, dx, dy, width, height;
 
         for (var door in this.door) {
@@ -927,6 +932,24 @@ RZ.Room.prototype = {
                 width = doors_legend[door][this.door[door]][4];
                 height = doors_legend[door][this.door[door]][5];
                 context.drawImage(RZ.Assets.img.tiles, sx, sy, width, height, dx, dy, width, height);
+            }
+        }
+    },
+
+    drawDoorsFillLayer: function (context, doors_legend) {
+        var dx, dy, width, height;
+
+        for (var door in this.door) {
+            if (this.door[door] === 'open' || this.door[door] === 'locked') {
+                dx = doors_legend[door][this.door[door]][2];
+                dy = doors_legend[door][this.door[door]][3];
+                width = doors_legend[door][this.door[door]][4];
+                height = doors_legend[door][this.door[door]][5];
+
+                context.fillStyle = RZ.Screen.color;
+                context.globalAlpha = 0.5;
+                context.fillRect(dx, dy, width, height);
+                context.globalAlpha = 1.0;
             }
         }
     },
