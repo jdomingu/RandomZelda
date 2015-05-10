@@ -131,27 +131,47 @@ RZ.Assets = {
             '6': [48, 288]
         },
 
-       /* Walls
-        * 0 - Blank walls
-        * 1 - Left door, open
-        * 2 - Top door, open
-        * 3 - Right door, open
-        * 4 - Bottom door, openn
-        * 5 - Left door, locked
-        * 6 - Top door, locked
-        * 7 - Right door, locked
-        * 8 - Bottom door, locked */
-        walls: {
-            '0': [0, 96],
-            '1': [0, 1152],
-            '2': [72, 1152],
-            '3': [264, 1152],
-            '4': [72, 1224]
+        doors: {
+            left: {
+                'open': [0, 1152, 24, 192, 72, 144],
+                'locked': [0, 1296, 24, 192, 72, 144],
+            },
+            up: {
+                'open': [72, 1152, 288, 24, 192, 72],
+                'locked': [72, 1296, 288, 24, 192, 72],
+            },
+            right: {
+                'open': [264, 1152, 672, 192, 72, 144],
+                'locked': [264, 1296, 672, 192, 72, 144],
+            },
+            down: {
+                'open': [72, 1224, 288, 432, 192, 72],
+                'locked': [72, 1368, 192, 72]
+            }
         },
 
-        walls_contrast: {
-            '0': [0, 624]
-        }
+        doors_contrast: {
+            left: {
+                'open': [336, 1152, 24, 192, 72, 144],
+                'locked': [336, 1296, 24, 192, 72, 144],
+            },
+            up: {
+                'open': [408, 1152, 288, 24, 192, 72],
+                'locked': [408, 1296, 288, 24, 192, 72],
+            },
+            right: {
+                'open': [600, 1152, 672, 192, 72, 144],
+                'locked': [600, 1296, 672, 192, 72, 144],
+            },
+            down: {
+                'open': [408, 1224, 288, 432, 192, 72],
+                'locked': [408, 1368, 192, 72]
+            }
+        },
+
+        walls: [0, 96],
+
+        walls_contrast: [0, 624]
     }
 };
 
@@ -856,11 +876,14 @@ RZ.Room.prototype = {
             layout = this.layouts[this.roomLayout],
             walls = RZ.Assets.legend.walls,
             walls_contrast = RZ.Assets.legend.walls_contrast,
+            doors = RZ.Assets.legend.doors,
+            doors_contrast = RZ.Assets.legend.doors_contrast,
             rowsLen = layout.length,
             colsLen;
         
-        context.drawImage(RZ.Assets.img.tiles, walls[0][0], walls[0][1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+        context.drawImage(RZ.Assets.img.tiles, walls[0], walls[1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
         this.drawLayer(canvas, RZ.Assets.legend.tiles);
+        this.drawDoors(context, doors);
 
         context.fillStyle = RZ.Screen.color;
         context.globalAlpha = 0.5;
@@ -868,7 +891,8 @@ RZ.Room.prototype = {
         context.globalAlpha = 1.0;
 
         this.drawLayer(canvas, RZ.Assets.legend.tiles_contrast);
-        context.drawImage(RZ.Assets.img.tiles, walls_contrast[0][0], walls_contrast[0][1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+        context.drawImage(RZ.Assets.img.tiles, walls_contrast[0], walls_contrast[1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+        this.drawDoors(context, doors_contrast);
     },
 
     drawLayer: function (canvas, tiles) {
@@ -887,6 +911,22 @@ RZ.Room.prototype = {
                     sy = tiles[layout[i][j]][0];
 
                 context.drawImage(RZ.Assets.img.tiles, sx, sy, this.width, this.height, x, y, this.width, this.height);
+            }
+        }
+    },
+
+    drawDoors: function (context, doors_legend) {
+        var sx, sy, dx, dy, width, height;
+
+        for (var door in this.door) {
+            if (this.door[door] === 'open' || this.door[door] === 'locked') {
+                sx = doors_legend[door][this.door[door]][0];
+                sy = doors_legend[door][this.door[door]][1];
+                dx = doors_legend[door][this.door[door]][2];
+                dy = doors_legend[door][this.door[door]][3];
+                width = doors_legend[door][this.door[door]][4];
+                height = doors_legend[door][this.door[door]][5];
+                context.drawImage(RZ.Assets.img.tiles, sx, sy, width, height, dx, dy, width, height);
             }
         }
     },
