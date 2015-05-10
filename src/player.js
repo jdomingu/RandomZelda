@@ -45,7 +45,7 @@ RZ.Player.prototype = {
                 this.y -= this.speed;
                 this.x += xAlign;
             }
-            this.sx = 96;
+            this.sx = RZ.Assets.legend.link[2][0];
         } else if (RZ.Keyboard.isDown('S')) {
             if (RZ.Game.currentRoom.isAccessible(this.x + this.speed, 
                                                  this.y + this.width  + this.speed) &&
@@ -55,7 +55,7 @@ RZ.Player.prototype = {
                 this.y += this.speed;
                 this.x += xAlign; 
             }
-            this.sx = 0;
+            this.sx = RZ.Assets.legend.link[0][0];
         } 
         
         if (origY === this.y) {
@@ -72,7 +72,7 @@ RZ.Player.prototype = {
                     this.x -= this.speed;
                     this.y += yAlign;
                 }
-                this.sx = 48;
+                this.sx = RZ.Assets.legend.link[1][0];
             } else if (RZ.Keyboard.isDown('D')) {
                 if (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed, 
                                                      this.y + this.width / 2 + this.speed) &&
@@ -82,7 +82,7 @@ RZ.Player.prototype = {
                     this.x += this.speed;
                     this.y += yAlign;
                 }
-                this.sx = 144;
+                this.sx = RZ.Assets.legend.link[3][0];
             }
         }
     },

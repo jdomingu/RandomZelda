@@ -87,6 +87,71 @@ RZ.Assets = {
         for (var i = 0; i < imgLen; i++) {
             loadImage(imagesToLoad[i][0], imagesToLoad[i][1]);
         }
+    },
+
+    legend: {
+       /* Link
+        * 0 - Facing down
+        * 1 - Facing left
+        * 2 - Facing up
+        * 3 - Facing right */
+        link: {
+            '0': [0,0],
+            '1': [48, 0],
+            '2': [96, 0],
+            '3': [144, 0]
+        },
+
+       /* Tiles
+        * 0 - Empty tile
+        * 1 - Block
+        * 2 - Right-facing statue
+        * 3 - Left-facing statue
+        * 4 - Speckled tile
+        * 5 - Stairs
+        * 6 - Water
+        */
+        tiles: {
+            '0': [0, 0],
+            '1': [0, 48],
+            '2': [0, 96],
+            '3': [0, 144],
+            '4': [0, 192],
+            '5': [0, 240],
+            '6': [0, 288]
+        },
+
+        tiles_contrast: {
+            '0': [48, 0],
+            '1': [48, 48],
+            '2': [48, 96],
+            '3': [48, 144],
+            '4': [48, 192],
+            '5': [48, 240],
+            '6': [48, 288]
+        },
+
+       /* Walls
+        * 0 - Blank walls
+        * 1 - Left door, open
+        * 2 - Top door, open
+        * 3 - Right door, open
+        * 4 - Bottom door, openn
+        * 5 - Left door, locked
+        * 6 - Top door, locked
+        * 7 - Right door, locked
+        * 8 - Bottom door, locked */
+        walls: {
+            '0': [0, 96],
+            '1': [0, 1152],
+            '2': [72, 1152],
+            '3': [264, 1152],
+            '4': [72, 1224]
+        },
+
+        walls_contrast: {
+            '0': [0, 624]
+        }
     }
 };
 
@@ -682,7 +747,7 @@ RZ.Player.prototype = {
                 this.y -= this.speed;
                 this.x += xAlign;
             }
-            this.sx = 96;
+            this.sx = RZ.Assets.legend.link[2][0];
         } else if (RZ.Keyboard.isDown('S')) {
             if (RZ.Game.currentRoom.isAccessible(this.x + this.speed, 
                                                  this.y + this.width  + this.speed) &&
@@ -692,7 +757,7 @@ RZ.Player.prototype = {
                 this.y += this.speed;
                 this.x += xAlign; 
             }
-            this.sx = 0;
+            this.sx = RZ.Assets.legend.link[0][0];
         } 
         
         if (origY === this.y) {
@@ -709,7 +774,7 @@ RZ.Player.prototype = {
                     this.x -= this.speed;
                     this.y += yAlign;
                 }
-                this.sx = 48;
+                this.sx = RZ.Assets.legend.link[1][0];
             } else if (RZ.Keyboard.isDown('D')) {
                 if (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed, 
                                                      this.y + this.width / 2 + this.speed) &&
@@ -719,7 +784,7 @@ RZ.Player.prototype = {
                     this.x += this.speed;
                     this.y += yAlign;
                 }
-                this.sx = 144;
+                this.sx = RZ.Assets.legend.link[3][0];
             }
         }
     },
@@ -765,24 +830,45 @@ RZ.Room = function () {
 };
 
 RZ.Room.prototype = {
-    wallWidth: 48 * 2,
+    wallWidth: 96,
+
+    defaultAccessibleCoords: [
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1]
+    ],
 
     draw: function (canvas) {
         var context = canvas.getContext('2d'),
             layout = this.layouts[this.roomLayout],
+            walls = RZ.Assets.legend.walls,
+            walls_contrast = RZ.Assets.legend.walls_contrast,
             rowsLen = layout.length,
             colsLen;
         
-        context.drawImage(RZ.Assets.img.tiles, 0, 96, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-        this.drawLayer(canvas, this.tiles);
+        context.drawImage(RZ.Assets.img.tiles, walls[0][0], walls[0][1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+        this.drawLayer(canvas, RZ.Assets.legend.tiles);
 
         context.fillStyle = RZ.Screen.color;
         context.globalAlpha = 0.5;
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.globalAlpha = 1.0;
 
-        this.drawLayer(canvas, this.tiles_contrast);
-        context.drawImage(RZ.Assets.img.tiles, 0, 624, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+        this.drawLayer(canvas, RZ.Assets.legend.tiles_contrast);
+        context.drawImage(RZ.Assets.img.tiles, walls_contrast[0][0], walls_contrast[0][1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
     },
 
     drawLayer: function (canvas, tiles) {
@@ -805,28 +891,7 @@ RZ.Room.prototype = {
         }
     },
 
-    // TO DO: Replace with empty coords except for walls, then generate 
-    // correct coords from roomLayout and doors
-    defaultAccessibleCoords: [
-        [1,1,1,1,1,1,1,1,1,1,1],
-        [1,1,1,1,1,1,1,1,1,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1],
-        [1,1,1,1,1,1,1,1,1,1,1],
-        [1,1,1,1,1,1,1,1,1,1,1]
-    ],
-
-	generateAccessibleCoords: function () {
+    generateAccessibleCoords: function () {
 		var accessibleCoords = this.defaultAccessibleCoords.slice(),
 			layout = this.layouts[this.roomLayout],
 			rowsLen = layout.length,
@@ -866,157 +931,128 @@ RZ.Room.prototype = {
     },
 
     convertPixelsToCoords: function (x, y) {
-        var coordX = Math.floor(x / 48),
-            coordY = Math.floor(y / 48);
+        var coordX = Math.floor(x / this.width),
+            coordY = Math.floor(y / this.height);
 
         return [coordX, coordY];
-    },
-
-    /* Tile Legend
-     * 0 - Empty tile
-     * 1 - Block
-     * 2 - Right-facing statue
-     * 3 - Left-facing statue
-     * 4 - Speckled tile
-     * 5 - Stairs
-     * 6 - Water
-     */
-    tiles: {
-        '0': [0, 0],
-        '1': [0, 48],
-        '2': [0, 96],
-        '3': [0, 144],
-        '4': [0, 192],
-        '5': [0, 240],
-        '6': [0, 288]
-    },
-
-    tiles_contrast: {
-        '0': [48, 0],
-        '1': [48, 48],
-        '2': [48, 96],
-        '3': [48, 144],
-        '4': [48, 192],
-        '5': [48, 240],
-        '6': [48, 288]
-    },
-
-
-    /* Layout Legend
-     * Entrance - start room with statues
-     * Empty - all blank tiles
-     * One - one island of blocks in the center
-     * Two- two islands of blocks on the sides
-     * Four - four blocks near the corners
-     * Five - five groups of blocks in an X formation
-     * Brackets - water fills two bracket shaped trenches
-     */
-    layouts: {
-        'entrance': [
-            [0,0,0,0,0,0,0],
-            [0,2,0,2,0,2,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,4,4],
-            [0,2,0,2,0,2,4],
-            [0,0,0,0,4,4,4],
-            [0,0,0,0,4,4,4],
-            [0,3,0,3,0,3,4],
-            [0,0,0,0,0,4,4],
-            [0,0,0,0,0,0,0],
-            [0,3,0,3,0,3,0],
-            [0,0,0,0,0,0,0]
-        ],
-
-        'empty': [
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0]
-        ],
-
-        'one': [
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,1,1,1,0,0],
-            [0,0,1,1,1,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0]
-        ],
-
-        'two': [
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,1,1,1,0,0],
-            [0,0,1,1,1,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,1,1,1,0,0],
-            [0,0,1,1,1,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0]
-        ], 
-        
-        'four': [
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,1,0,1,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,1,0,1,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0]
-        ],
-
-        'five': [
-            [0,0,0,0,0,0,0],
-            [0,1,0,0,0,1,0],
-            [0,1,0,0,0,1,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,1,0,0,0],
-            [0,0,0,1,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,1,0,0,0,1,0],
-            [0,1,0,0,0,1,0],
-            [0,0,0,0,0,0,0]
-        ],
-
-        'brackets': [
-            [0,0,0,0,0,0,0],
-            [0,6,6,6,6,6,0],
-            [0,6,0,0,0,6,0],
-            [0,6,0,6,0,6,0],
-            [0,0,0,6,0,0,0],
-            [0,0,0,6,0,0,0],
-            [0,0,0,6,0,0,0],
-            [0,0,0,6,0,0,0],
-            [0,6,0,6,0,6,0],
-            [0,6,0,0,0,6,0],
-            [0,6,6,6,6,6,0],
-            [0,0,0,0,0,0,0]
-        ]
     }
+    
+};
+
+/* Layout Legend
+ * Entrance - start room with statues
+ * Empty - all blank tiles
+ * One - one island of blocks in the center
+ * Two- two islands of blocks on the sides
+ * Four - four blocks near the corners
+ * Five - five groups of blocks in an X formation
+ * Brackets - water fills two bracket shaped trenches
+ */
+RZ.Room.prototype.layouts = {
+    'entrance': [
+        [0,0,0,0,0,0,0],
+        [0,2,0,2,0,2,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,4,4],
+        [0,2,0,2,0,2,4],
+        [0,0,0,0,4,4,4],
+        [0,0,0,0,4,4,4],
+        [0,3,0,3,0,3,4],
+        [0,0,0,0,0,4,4],
+        [0,0,0,0,0,0,0],
+        [0,3,0,3,0,3,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'empty': [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'one': [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'two': [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0]
+    ], 
+    
+    'four': [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,0,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,0,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'five': [
+        [0,0,0,0,0,0,0],
+        [0,1,0,0,0,1,0],
+        [0,1,0,0,0,1,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,1,0,0,0],
+        [0,0,0,1,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,1,0,0,0,1,0],
+        [0,1,0,0,0,1,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'brackets': [
+        [0,0,0,0,0,0,0],
+        [0,6,6,6,6,6,0],
+        [0,6,0,0,0,6,0],
+        [0,6,0,6,0,6,0],
+        [0,0,0,6,0,0,0],
+        [0,0,0,6,0,0,0],
+        [0,0,0,6,0,0,0],
+        [0,0,0,6,0,0,0],
+        [0,6,0,6,0,6,0],
+        [0,6,0,0,0,6,0],
+        [0,6,6,6,6,6,0],
+        [0,0,0,0,0,0,0]
+    ]
 };
 
 RZ.Screen = {
