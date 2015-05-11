@@ -66,10 +66,12 @@ RZ.Screen = {
     mapTransition: function (direction) { // When the map moves into view, the bg and main move out
         if (direction === 'coming') {
             RZ.Screen.transition(RZ.Screen.map, RZ.Screen.map.style.top, 0, 'top');
+            RZ.Screen.transition(RZ.Screen.fg, RZ.Screen.fg.style.top, RZ.Screen.map.height, 'top');
             RZ.Screen.transition(RZ.Screen.main, RZ.Screen.main.style.top, RZ.Screen.map.height, 'top');
             RZ.Screen.transition(RZ.Screen.bg, RZ.Screen.bg.style.top, RZ.Screen.map.height, 'top');
         } else if (direction === 'going') {
             RZ.Screen.transition(RZ.Screen.map, RZ.Screen.map.style.top, RZ.Screen.mapStartTop, 'top');
+            RZ.Screen.transition(RZ.Screen.fg, RZ.Screen.fg.style.top, RZ.Screen.roomStartTop, 'top');
             RZ.Screen.transition(RZ.Screen.main, RZ.Screen.main.style.top, RZ.Screen.roomStartTop, 'top');
             RZ.Screen.transition(RZ.Screen.bg, RZ.Screen.bg.style.top, RZ.Screen.roomStartTop, 'top');
         }
