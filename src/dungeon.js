@@ -24,6 +24,7 @@ RZ.Dungeon = function(width, height, seed) {
     this.initialPosition = new RZ.Coord(this.START_X, this.START_Y);
     this.startingCoords = [this.initialPosition];
     this.edgeCoords = [this.initialPosition];
+    this.color = this.getRandomColor(); 
     
     // Keep track of rooms on the edge that haven't been boxed in
     // so that you can generate branches on those rooms
@@ -265,6 +266,13 @@ RZ.Dungeon.prototype = {
         } else {
             return 'none';
         }
+    },
+
+    getRandomColor: function () {
+        var colors = ['#ffff00', '#ffffff', '#ff0000', '#00ff00', 
+                      '#0000ff', '#00ffff', '#ffff00'];
+
+        return colors[Math.floor(this.random() * colors.length)];
     },
 
     getRandomCoords: function (grid, existingRoomCoords, edgeCoords, coords, jumpsAllowed) {

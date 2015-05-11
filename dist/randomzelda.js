@@ -15,7 +15,8 @@ RZ.Game = {
         map = new RZ.Map(dungeon, RZ.Screen.map);
         this.currentRoom = dungeon.startRoom;
 		this.currentRoom.accessibleCoords = this.currentRoom.generateAccessibleCoords();
-        this.player = new RZ.Player(RZ.Screen.fg);
+        this.color = dungeon.color;
+        this.player = new RZ.Player(RZ.Screen.main);
 
         return [dungeon.grid, rooms, map];
     }, 
@@ -27,7 +28,7 @@ RZ.Game = {
 
         var startDrawing = function () {
             map.draw(grid, rooms);
-            RZ.Game.currentRoom.draw(RZ.Screen.bg);
+            RZ.Game.currentRoom.draw(RZ.Screen.bg, RZ.Screen.fg);
             RZ.Game.player.drawOnce();
         }; 
 
@@ -131,47 +132,106 @@ RZ.Assets = {
             '6': [48, 288]
         },
 
+       /* Doors
+        * [source_x, source_y, dest_x, dest_y, width, height]
+        */
         doors: {
             left: {
-                'open': [0, 1152, 24, 192, 72, 144],
+                'open': [24, 1152, 48, 192, 48, 144],
                 'locked': [0, 1296, 24, 192, 72, 144],
             },
             up: {
-                'open': [72, 1152, 288, 24, 192, 72],
+                'open': [72, 1176, 288, 48, 192, 48],
                 'locked': [72, 1296, 288, 24, 192, 72],
             },
             right: {
-                'open': [264, 1152, 672, 192, 72, 144],
+                'open': [264, 1152, 672, 192, 72, 120],
                 'locked': [264, 1296, 672, 192, 72, 144],
             },
             down: {
-                'open': [72, 1224, 288, 432, 192, 72],
+                'open': [72, 1224, 288, 432, 168, 72],
                 'locked': [72, 1368, 192, 72]
             }
         },
 
         doors_contrast: {
             left: {
-                'open': [336, 1152, 24, 192, 72, 144],
+                'open': [360, 1152, 48, 192, 48, 144],
                 'locked': [336, 1296, 24, 192, 72, 144],
             },
             up: {
-                'open': [408, 1152, 288, 24, 192, 72],
+                'open': [408, 1176, 288, 48, 192, 48],
                 'locked': [408, 1296, 288, 24, 192, 72],
             },
             right: {
-                'open': [600, 1152, 672, 192, 72, 144],
+                'open': [600, 1152, 672, 192, 72, 120],
                 'locked': [600, 1296, 672, 192, 72, 144],
             },
             down: {
-                'open': [408, 1224, 288, 432, 192, 72],
+                'open': [408, 1224, 288, 432, 168, 72],
                 'locked': [408, 1368, 192, 72]
             }
         },
+       
+        door_frames: {
+            left: {
+                'open': [0, 1152, 24, 192, 24, 144],
+                'locked': [0, 1152, 24, 192, 24, 144]
+            },
+            up: {
+                'open': [72, 1152, 288, 24, 192, 24],
+                'locked': [72, 1152, 288, 24, 192, 24]
+            },
+            right: {
+                'open': [312, 1152, 720, 192, 24, 144],
+                'locked': [312, 1152, 720, 192, 24, 144]
+            },
+            down: {
+                'open': [72, 1272, 288, 480, 192, 24],
+                'locked': [72, 1272, 288, 480, 192, 24]
+            }
+        },
 
-        walls: [0, 96],
+        door_frames_contrast: {
+            left: {
+                'open': [336, 1152, 24, 192, 24, 144],
+                'locked': [336, 1152, 24, 192, 24, 144]
+            },
+            up: {
+                'open': [408, 1152, 288, 24, 192, 24],
+                'locked': [408, 1152, 288, 24, 192, 24]
+            },
+            right: {
+                'open': [648, 1152, 720, 192, 24, 144],
+                'locked': [648, 1152, 720, 192, 24, 144]
+            },
+            down: {
+                'open': [408, 1272, 288, 480, 192, 24],
+                'locked': [408, 1272, 288, 480, 192, 24]
+            }
+        },
+        
+       /* Walls
+        * [source_x, source_y, dest_x, dest_y, width, height]
+        */
+        walls: [24, 120, 24, 24, 720, 480],
 
-        walls_contrast: [0, 624]
+        walls_contrast: [24, 648, 24, 24, 720, 480],
+
+        wall_frames: {
+            left: [0, 96, 0, 0, 24, 528],
+            up: [24, 96, 24, 0, 720, 24],
+            right: [744, 96, 744, 0, 24, 528],
+            down: [24, 604, 24, 504, 720, 24]
+        },
+
+        wall_frames_contrast: {
+            left: [0, 624, 0, 0, 24, 528],
+            up: [24, 624, 24, 0, 720, 24],
+            right: [744, 624, 744, 0, 24, 528],
+            down: [24, 1132, 24, 504, 720, 24]
+        },
+        
     }
 };
 
@@ -217,6 +277,7 @@ RZ.Dungeon = function(width, height, seed) {
     this.initialPosition = new RZ.Coord(this.START_X, this.START_Y);
     this.startingCoords = [this.initialPosition];
     this.edgeCoords = [this.initialPosition];
+    this.color = this.getRandomColor(); 
     
     // Keep track of rooms on the edge that haven't been boxed in
     // so that you can generate branches on those rooms
@@ -458,6 +519,13 @@ RZ.Dungeon.prototype = {
         } else {
             return 'none';
         }
+    },
+
+    getRandomColor: function () {
+        var colors = ['#ffff00', '#ffffff', '#ff0000', '#00ff00', 
+                      '#0000ff', '#00ffff', '#ffff00'];
+
+        return colors[Math.floor(this.random() * colors.length)];
     },
 
     getRandomCoords: function (grid, existingRoomCoords, edgeCoords, coords, jumpsAllowed) {
@@ -879,27 +947,40 @@ RZ.Room.prototype = {
         down: [[360, 432], [408, 528]]  // in front of things
     }, 
 
-    draw: function (canvas) {
-        var context = canvas.getContext('2d'),
+    draw: function (bg, fg) {
+        var bgContext = bg.getContext('2d'),
+            fgContext = fg.getContext('2d'),
             layout = this.layouts[this.roomLayout],
             walls = RZ.Assets.legend.walls,
             walls_contrast = RZ.Assets.legend.walls_contrast,
+            wall_frames = RZ.Assets.legend.wall_frames,
+            wall_frames_contrast = RZ.Assets.legend.wall_frames_contrast,
             doors = RZ.Assets.legend.doors,
             doors_contrast = RZ.Assets.legend.doors_contrast,
+            door_frames = RZ.Assets.legend.door_frames,
+            door_frames_contrast = RZ.Assets.legend.door_frames_contrast,
             rowsLen = layout.length,
             colsLen;
         
-        context.drawImage(RZ.Assets.img.tiles, walls[0], walls[1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-        this.drawLayer(canvas, RZ.Assets.legend.tiles);
+        // Draw grayscale walls without doors
+        bgContext.drawImage(RZ.Assets.img.tiles, walls[0], walls[1], walls[4], walls[5], walls[2], walls[3], walls[4], walls[5]);
+        // Draw grayscale tiles in the center of the room
+        this.drawLayer(bg, RZ.Assets.legend.tiles);
 
-        context.fillStyle = RZ.Screen.color;
-        context.globalAlpha = 0.5;
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.globalAlpha = 1.0;
+        // Draw a semi-transparent fill between layers
+        bgContext.fillStyle = RZ.Game.color;
+        bgContext.globalAlpha = 0.5;
+        bgContext.fillRect(walls[2], walls[3], walls[4], walls[5]);
+        bgContext.globalAlpha = 1.0;
 
-        this.drawLayer(canvas, RZ.Assets.legend.tiles_contrast);
-        context.drawImage(RZ.Assets.img.tiles, walls_contrast[0], walls_contrast[1], canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-        this.drawDoors(context, doors, doors_contrast);
+        // Draw a black, high-contrast layer of the walls without doors
+        bgContext.drawImage(RZ.Assets.img.tiles, walls_contrast[0], walls_contrast[1], walls_contrast[4], walls_contrast[5], walls_contrast[2], walls_contrast[3], walls_contrast[4], walls_contrast[5]);
+        this.drawLayer(bg, RZ.Assets.legend.tiles_contrast);
+
+        // Draw the doors in separate layers as well
+        this.drawDoors(bgContext, doors, doors_contrast, fgContext, door_frames, door_frames_contrast);
+
+        this.drawWallFrames(fgContext, wall_frames, wall_frames_contrast);
     },
 
     drawLayer: function (canvas, tiles) {
@@ -922,10 +1003,55 @@ RZ.Room.prototype = {
         }
     },
 
-    drawDoors: function (context, doors, doors_contrast) {
-        this.drawDoorsLayer(context, doors);
-        this.drawDoorsFillLayer(context, doors);
-        this.drawDoorsLayer(context, doors_contrast);
+
+    drawWallFrames: function (context, wall_frames, wall_frames_contrast) {
+        this.drawWallFrameLayer(context, wall_frames);
+        this.drawWallFrameFillLayer(context, wall_frames);
+        this.drawWallFrameLayer(context, wall_frames_contrast);
+    },
+
+    drawWallFrameLayer: function (context, wall_legend) {
+        var sx, sy, dx, dy, width, height;
+
+        for (var wall in wall_legend) {
+            sx = wall_legend[wall][0];
+            sy = wall_legend[wall][1];
+            dx = wall_legend[wall][2];
+            dy = wall_legend[wall][3];
+            width = wall_legend[wall][4];
+            height = wall_legend[wall][5];
+            context.drawImage(RZ.Assets.img.tiles, sx, sy, width, height, dx, dy, width, height);
+        }
+    },
+
+    drawWallFrameFillLayer: function (context, wall_legend) {
+        var sx, sy, dx, dy, width, height;
+
+        for (var wall in wall_legend) {
+            sx = wall_legend[wall][0];
+            sy = wall_legend[wall][1];
+            dx = wall_legend[wall][2];
+            dy = wall_legend[wall][3];
+            width = wall_legend[wall][4];
+            height = wall_legend[wall][5];
+
+            context.fillStyle = RZ.Game.color;
+            context.globalAlpha = 0.5;
+            context.fillRect(dx, dy, width, height);
+            context.globalAlpha = 1.0;
+        }
+    },
+
+    drawDoors: function (bgContext, doors, doors_contrast, fgContext, door_frames, door_frames_contrast) {
+        this.drawDoorsLayer(bgContext, doors);
+        this.drawDoorsFillLayer(bgContext, doors);
+        this.drawDoorsLayer(bgContext, doors_contrast);
+
+        // Draw the door frame on a separate canvas so that Link can appear
+        // to walk underneath them
+        this.drawDoorsLayer(fgContext, door_frames);
+        this.drawDoorsFillLayer(fgContext, door_frames);
+        this.drawDoorsLayer(fgContext, door_frames_contrast);
     },
 
     drawDoorsLayer: function (context, doors_legend) {
@@ -954,7 +1080,7 @@ RZ.Room.prototype = {
                 width = doors_legend[door][this.door[door]][4];
                 height = doors_legend[door][this.door[door]][5];
 
-                context.fillStyle = RZ.Screen.color;
+                context.fillStyle = RZ.Game.color;
                 context.globalAlpha = 0.5;
                 context.fillRect(dx, dy, width, height);
                 context.globalAlpha = 1.0;
@@ -1166,7 +1292,6 @@ RZ.Screen = {
             height = mainDiv.clientHeight, 
             heightMinusHUD = height - headsUpDisplayHeight;
         
-        this.color = this.getRandomColor(); 
         this.mapStartTop = 0 - heightMinusHUD;
         this.roomStartTop = headsUpDisplayHeight;
 
@@ -1183,7 +1308,8 @@ RZ.Screen = {
         this.map.style.zIndex = 0;
         mainDiv.appendChild(this.map);
         
-        // The foreground canvas is for the player and other moving objects
+        // The foreground canvas is for the room frame (i.e. Link walks under
+        // the wall frame when going through doors
         this.fg = document.createElement('canvas');
         this.fg.id = 'RZfg';
         this.fg.width = width;
@@ -1192,8 +1318,20 @@ RZ.Screen = {
         this.fg.style.top = headsUpDisplayHeight;
         this.fg.style.left = 0;
         this.fg.style.background = 'transparent';
-        this.fg.style.zIndex = -1;
+        this.fg.style.zIndex = -2;
         mainDiv.appendChild(this.fg);
+
+        // The main canvas is for the player and other moving objects
+        this.main = document.createElement('canvas');
+        this.main.id = 'RZmain';
+        this.main.width = width;
+        this.main.height = heightMinusHUD;
+        this.main.style.position = 'absolute';
+        this.main.style.top = headsUpDisplayHeight;
+        this.main.style.left = 0;
+        this.main.style.background = 'transparent';
+        this.main.style.zIndex = -3;
+        mainDiv.appendChild(this.main);
 
         //The background canvas is for room tiles
         this.bg = document.createElement('canvas');
@@ -1204,33 +1342,21 @@ RZ.Screen = {
         this.bg.style.top = headsUpDisplayHeight;
         this.bg.style.left = 0;
         this.bg.style.background = 'transparent';
-        this.bg.style.zIndex = -2;
+        this.bg.style.zIndex = -4;
         mainDiv.appendChild(this.bg);
 
         // Canvas contents display as a fallback if canvas isn't supported
         this.bg.innerHTML += '<p>Ensure that your browser is compatible with canvas</p>';
     },
 
-    getRandomColor: function () {
-        var colors = ['#ffff00',
-                      '#ffffff',
-                      '#ff0000',
-                      '#00ff00',
-                      '#0000ff',
-                      '#00ffff',
-                      '#ffff00'];
-
-        return colors[Math.floor(Math.random() * colors.length)];
-    },
-
-    mapTransition: function (direction) { // When the map moves into view, the bg and fg move out
+    mapTransition: function (direction) { // When the map moves into view, the bg and main move out
         if (direction === 'coming') {
             RZ.Screen.transition(RZ.Screen.map, RZ.Screen.map.style.top, 0, 'top');
-            RZ.Screen.transition(RZ.Screen.fg, RZ.Screen.fg.style.top, RZ.Screen.map.height, 'top');
+            RZ.Screen.transition(RZ.Screen.main, RZ.Screen.main.style.top, RZ.Screen.map.height, 'top');
             RZ.Screen.transition(RZ.Screen.bg, RZ.Screen.bg.style.top, RZ.Screen.map.height, 'top');
         } else if (direction === 'going') {
             RZ.Screen.transition(RZ.Screen.map, RZ.Screen.map.style.top, RZ.Screen.mapStartTop, 'top');
-            RZ.Screen.transition(RZ.Screen.fg, RZ.Screen.fg.style.top, RZ.Screen.roomStartTop, 'top');
+            RZ.Screen.transition(RZ.Screen.main, RZ.Screen.main.style.top, RZ.Screen.roomStartTop, 'top');
             RZ.Screen.transition(RZ.Screen.bg, RZ.Screen.bg.style.top, RZ.Screen.roomStartTop, 'top');
         }
     },

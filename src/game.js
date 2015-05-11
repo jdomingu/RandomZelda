@@ -15,7 +15,8 @@ RZ.Game = {
         map = new RZ.Map(dungeon, RZ.Screen.map);
         this.currentRoom = dungeon.startRoom;
 		this.currentRoom.accessibleCoords = this.currentRoom.generateAccessibleCoords();
-        this.player = new RZ.Player(RZ.Screen.fg);
+        this.color = dungeon.color;
+        this.player = new RZ.Player(RZ.Screen.main);
 
         return [dungeon.grid, rooms, map];
     }, 
@@ -27,7 +28,7 @@ RZ.Game = {
 
         var startDrawing = function () {
             map.draw(grid, rooms);
-            RZ.Game.currentRoom.draw(RZ.Screen.bg);
+            RZ.Game.currentRoom.draw(RZ.Screen.bg, RZ.Screen.fg);
             RZ.Game.player.drawOnce();
         }; 
 
