@@ -6,19 +6,19 @@ var RZ = RZ || {};
 
 RZ.Game = {
     init: function (id, seed) {
-        var dungeon, rooms, map;
+        var rooms, map;
         
         RZ.Screen.init(id); // Set up canvases
 
-        dungeon = new RZ.Dungeon(RZ.Screen.map.width, RZ.Screen.map.height, seed); // Create dungeon object
-        rooms = dungeon.generate(); // Generate random dungeon
-        map = new RZ.Map(dungeon, RZ.Screen.map);
-        this.currentRoom = dungeon.startRoom;
+        this.dungeon = new RZ.Dungeon(RZ.Screen.map.width, RZ.Screen.map.height, seed); // Create dungeon object
+        rooms = this.dungeon.generate(); // Generate random dungeon
+        map = new RZ.Map(this.dungeon, RZ.Screen.map);
+        this.currentRoom = this.dungeon.startRoom;
 		this.currentRoom.accessibleCoords = this.currentRoom.generateAccessibleCoords();
-        this.color = dungeon.color;
+        this.color = this.dungeon.color;
         this.player = new RZ.Player(RZ.Screen.main);
 
-        return [dungeon.grid, rooms, map];
+        return [this.dungeon.grid, rooms, map];
     }, 
 
     run: function (obj) {
@@ -210,7 +210,7 @@ RZ.Assets = {
                 'locked': [408, 1272, 288, 480, 192, 24]
             }
         },
-        
+     
        /* Walls
         * [source_x, source_y, dest_x, dest_y, width, height]
         */
@@ -267,7 +267,7 @@ RZ.Dungeon = function(width, height, seed) {
 
     // Generate the grid
     this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
-    this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
+    this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(this.START_X, this.START_Y); 
     this.startRoom.roomLayout = 'entrance';
     
     // For testing, use numbers generated from a seed value instead of 
@@ -346,7 +346,8 @@ RZ.Dungeon.prototype = {
             // If you get boxed in on a branch, return the existing rooms instead of jumping to 
             // another random room and continuing. This prevents discontinuous branches.
             if (nextRoomCoord !== coords) {
-                grid[nextRoomCoord.x][nextRoomCoord.y] = new RZ.Room();
+                grid[nextRoomCoord.x][nextRoomCoord.y] = new RZ.Room(nextRoomCoord.x, nextRoomCoord.y);
+                this.setRandomLayout(grid[nextRoomCoord.x][nextRoomCoord.y]);
                 existingRoomCoords.push(nextRoomCoord);
                 this.edgeCoords.push(nextRoomCoord);
                 this.edgeCoords = this.filterEdgeCoords(grid, this.edgeCoords);
@@ -526,6 +527,10 @@ RZ.Dungeon.prototype = {
                       '#0000ff', '#00ffff', '#ffff00'];
 
         return colors[Math.floor(this.random() * colors.length)];
+    },
+
+    setRandomLayout: function (room) {
+        room.roomLayout = this.getRandomFromArray(room.normalLayouts);
     },
 
     getRandomCoords: function (grid, existingRoomCoords, edgeCoords, coords, jumpsAllowed) {
@@ -812,7 +817,9 @@ RZ.Player.prototype = {
         this.context.clearRect(this.x, this.y, this.width, this.height);
     
         this.toggleAnimation();
-        this.move();
+        if (RZ.Game.currentRoom.checkDoorTransition(this.x, this.y) === false) {
+           this.move();
+        }
 
         this.context.drawImage(RZ.Assets.img.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
     },
@@ -828,9 +835,11 @@ RZ.Player.prototype = {
 
         if (RZ.Keyboard.isDown('W')) { // Ex. When going up, get the upper left and upper
             if (RZ.Game.currentRoom.isAccessible(this.x + this.speed, // right coordinates
-                                                 this.y + this.width / 2 - this.speed) &&
+                                                 this.y + this.width / 3 - this.speed) &&
                (RZ.Game.currentRoom.isAccessible(this.x + this.width - this.speed, 
-                                                 this.y + this.width / 2 - this.speed))) {
+                                                 this.y + this.width / 3 - this.speed))) {
+                // Add this.width / 3 to allow partially overlapping blocks above. 
+                // This helps provide the illusion of depth
 
                 this.y -= this.speed;
                 this.x += xAlign;
@@ -904,7 +913,7 @@ RZ.Player.prototype = {
     }
 };
 
-RZ.Room = function () {
+RZ.Room = function (x, y) {
     // Set default values
     this.roomType = 'seed'; // Or 'branch', 'fake', 'boss'
     this.roomLayout = 'empty'; // Or 'entrance', 'four', 'five', etc.
@@ -915,6 +924,8 @@ RZ.Room = function () {
     this.door.right = 'none';
     this.width = 48; // Tile width and height
     this.height = 48;
+    this.x = x; // Location on the dungeon grid
+    this.y = y;
 };
 
 RZ.Room.prototype = {
@@ -940,12 +951,28 @@ RZ.Room.prototype = {
     ],
 
     doorPixelCoords: {
+        // Denotes the space that Link can walk into. Necessary because side doors
+        // align with a half-grid
         // [[upper left x, upper left y], [lower right x, lower right y]
         left: [[0, 250], [96, 295]], // Left and right doors have narrower heights 
         up: [[360, 0], [408, 96]],  // because Link can usually overlap objects
         right: [[672, 250], [768, 295]], // to give the appearance of him walking
         down: [[360, 432], [408, 528]]  // in front of things
     }, 
+
+   /* If Link stands in one of these zones, trigger
+    * a transition to another room
+    * [dest_x, dest_y, width, height] */
+    doorTransitionZones: {
+        // Denotes the space that Link can walk into. Necessary because side doors
+        // align with a half-grid
+        // [[upper left x, upper left y], [lower right x, lower right y]
+        left: [[0, 235], [24, 295]],
+        up: [[360, 0], [408, 24]], 
+        right: [[711, 235], [768, 295]], 
+        down: [[360, 476], [408, 528]] 
+    }, 
+
 
     draw: function (bg, fg) {
         var bgContext = bg.getContext('2d'),
@@ -1089,7 +1116,7 @@ RZ.Room.prototype = {
     },
 
     generateAccessibleCoords: function () {
-		var accessibleCoords = this.defaultAccessibleCoords.slice(),
+		var accessibleCoords = JSON.parse(JSON.stringify(this.defaultAccessibleCoords)), 
 			layout = this.layouts[this.roomLayout],
 			rowsLen = layout.length,
 			colsLen;
@@ -1142,6 +1169,43 @@ RZ.Room.prototype = {
         }
     },
 
+    checkDoorTransition: function (x, y) {
+        // Is this space on the far edge of a door, necessitating a transition between rooms?
+        for (var door in this.door) {
+            if (this.door[door] === 'open') {
+                if (x >= this.doorTransitionZones[door][0][0] && x <= this.doorTransitionZones[door][1][0] &&
+                    y >= this.doorTransitionZones[door][0][1] && y <= this.doorTransitionZones[door][1][1]) {
+
+                    var nextRoomX = this.x, 
+                        nextRoomY = this.y,
+                        nextPlayerX,
+                        nextPlayerY;
+
+                    if (door === 'left') {
+                        nextPlayerX = 708;
+                        nextPlayerY= 240;
+                        nextRoomX -= 1;
+                    } else if (door === 'right') {
+                        nextPlayerX = 28;
+                        nextPlayerY= 240;
+                        nextRoomX += 1;
+                    } else if (door === 'up') {
+                        nextPlayerX= 360;
+                        nextPlayerY= 472;
+                        nextRoomY -= 1;
+                    } else if (door === 'down') {
+                        nextPlayerX= 360;
+                        nextPlayerY= 28;
+                        nextRoomY += 1;
+                    }
+
+                    RZ.Screen.roomTransition(nextRoomX, nextRoomY, nextPlayerX, nextPlayerY);
+                    return true;
+                }
+            }
+        }
+        return false;
+    },
 
     convertPixelsToCoords: function (x, y) {
         var coordX = Math.floor(x / this.width),
@@ -1152,6 +1216,10 @@ RZ.Room.prototype = {
     
 };
 
+// A list of room layouts to use for normal (i.e. not start or end) rooms
+RZ.Room.prototype.normalLayouts = ['empty', 'one', 'two', 'four',
+                                   'five', 'water_path', 'water_brackets',
+                                   'diagonal'];
 /* Layout Legend
  * Entrance - start room with statues
  * Empty - all blank tiles
@@ -1407,6 +1475,27 @@ RZ.Screen = {
             RZ.Screen.transition(RZ.Screen.main, RZ.Screen.main.style.top, RZ.Screen.roomStartTop, 'top');
             RZ.Screen.transition(RZ.Screen.bg, RZ.Screen.bg.style.top, RZ.Screen.roomStartTop, 'top');
         }
+    },
+
+    roomTransition: function (nextRoomX, nextRoomY, nextPlayerX, nextPlayerY) {
+        var bgContext = this.bg.getContext('2d'),
+            fgContext = this.fg.getContext('2d');
+
+        // Don't let the player move while you reposition him and prepare the next room
+        RZ.Game.locked = true;
+        RZ.Game.player.x = nextPlayerX;
+        RZ.Game.player.y = nextPlayerY;
+
+        // Prepare the next room
+        RZ.Game.currentRoom = RZ.Game.dungeon.grid[nextRoomX][nextRoomY];
+        RZ.Game.currentRoom.accessibleCoords = RZ.Game.currentRoom.generateAccessibleCoords();
+
+        // Clear the canvas before drawing
+        bgContext.clearRect(0, 0, this.bg.width, this.bg.height);        
+        fgContext.clearRect(0, 0, this.fg.width, this.fg.height);        
+        RZ.Game.currentRoom.draw(RZ.Screen.bg, RZ.Screen.fg);
+
+        RZ.Game.locked = false;
     },
 
     transition: function (canvas, start, end, side) {

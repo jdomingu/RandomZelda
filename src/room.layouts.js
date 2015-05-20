@@ -1,3 +1,7 @@
+// A list of room layouts to use for normal (i.e. not start or end) rooms
+RZ.Room.prototype.normalLayouts = ['empty', 'one', 'two', 'four',
+                                   'five', 'water_path', 'water_brackets',
+                                   'diagonal'];
 /* Layout Legend
  * Entrance - start room with statues
  * Empty - all blank tiles

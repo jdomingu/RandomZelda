@@ -77,6 +77,27 @@ RZ.Screen = {
         }
     },
 
+    roomTransition: function (nextRoomX, nextRoomY, nextPlayerX, nextPlayerY) {
+        var bgContext = this.bg.getContext('2d'),
+            fgContext = this.fg.getContext('2d');
+
+        // Don't let the player move while you reposition him and prepare the next room
+        RZ.Game.locked = true;
+        RZ.Game.player.x = nextPlayerX;
+        RZ.Game.player.y = nextPlayerY;
+
+        // Prepare the next room
+        RZ.Game.currentRoom = RZ.Game.dungeon.grid[nextRoomX][nextRoomY];
+        RZ.Game.currentRoom.accessibleCoords = RZ.Game.currentRoom.generateAccessibleCoords();
+
+        // Clear the canvas before drawing
+        bgContext.clearRect(0, 0, this.bg.width, this.bg.height);        
+        fgContext.clearRect(0, 0, this.fg.width, this.fg.height);        
+        RZ.Game.currentRoom.draw(RZ.Screen.bg, RZ.Screen.fg);
+
+        RZ.Game.locked = false;
+    },
+
     transition: function (canvas, start, end, side) {
         var diff = parseInt(start) - end,
             dist = 5; // Increment to move the canvas for each call

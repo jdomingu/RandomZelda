@@ -14,7 +14,7 @@ RZ.Dungeon = function(width, height, seed) {
 
     // Generate the grid
     this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
-    this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(); 
+    this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(this.START_X, this.START_Y); 
     this.startRoom.roomLayout = 'entrance';
     
     // For testing, use numbers generated from a seed value instead of 
@@ -93,7 +93,8 @@ RZ.Dungeon.prototype = {
             // If you get boxed in on a branch, return the existing rooms instead of jumping to 
             // another random room and continuing. This prevents discontinuous branches.
             if (nextRoomCoord !== coords) {
-                grid[nextRoomCoord.x][nextRoomCoord.y] = new RZ.Room();
+                grid[nextRoomCoord.x][nextRoomCoord.y] = new RZ.Room(nextRoomCoord.x, nextRoomCoord.y);
+                this.setRandomLayout(grid[nextRoomCoord.x][nextRoomCoord.y]);
                 existingRoomCoords.push(nextRoomCoord);
                 this.edgeCoords.push(nextRoomCoord);
                 this.edgeCoords = this.filterEdgeCoords(grid, this.edgeCoords);
@@ -273,6 +274,10 @@ RZ.Dungeon.prototype = {
                       '#0000ff', '#00ffff', '#ffff00'];
 
         return colors[Math.floor(this.random() * colors.length)];
+    },
+
+    setRandomLayout: function (room) {
+        room.roomLayout = this.getRandomFromArray(room.normalLayouts);
     },
 
     getRandomCoords: function (grid, existingRoomCoords, edgeCoords, coords, jumpsAllowed) {

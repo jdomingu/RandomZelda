@@ -6,19 +6,19 @@ var RZ = RZ || {};
 
 RZ.Game = {
     init: function (id, seed) {
-        var dungeon, rooms, map;
+        var rooms, map;
         
         RZ.Screen.init(id); // Set up canvases
 
-        dungeon = new RZ.Dungeon(RZ.Screen.map.width, RZ.Screen.map.height, seed); // Create dungeon object
-        rooms = dungeon.generate(); // Generate random dungeon
-        map = new RZ.Map(dungeon, RZ.Screen.map);
-        this.currentRoom = dungeon.startRoom;
+        this.dungeon = new RZ.Dungeon(RZ.Screen.map.width, RZ.Screen.map.height, seed); // Create dungeon object
+        rooms = this.dungeon.generate(); // Generate random dungeon
+        map = new RZ.Map(this.dungeon, RZ.Screen.map);
+        this.currentRoom = this.dungeon.startRoom;
 		this.currentRoom.accessibleCoords = this.currentRoom.generateAccessibleCoords();
-        this.color = dungeon.color;
+        this.color = this.dungeon.color;
         this.player = new RZ.Player(RZ.Screen.main);
 
-        return [dungeon.grid, rooms, map];
+        return [this.dungeon.grid, rooms, map];
     }, 
 
     run: function (obj) {

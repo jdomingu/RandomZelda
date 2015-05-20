@@ -22,7 +22,9 @@ RZ.Player.prototype = {
         this.context.clearRect(this.x, this.y, this.width, this.height);
     
         this.toggleAnimation();
-        this.move();
+        if (RZ.Game.currentRoom.checkDoorTransition(this.x, this.y) === false) {
+           this.move();
+        }
 
         this.context.drawImage(RZ.Assets.img.link, this.sx, this.sy, this.width, this.height, this.x, this.y, this.width, this.height);
     },
@@ -38,9 +40,11 @@ RZ.Player.prototype = {
 
         if (RZ.Keyboard.isDown('W')) { // Ex. When going up, get the upper left and upper
             if (RZ.Game.currentRoom.isAccessible(this.x + this.speed, // right coordinates
-                                                 this.y + this.width / 2 - this.speed) &&
+                                                 this.y + this.width / 3 - this.speed) &&
                (RZ.Game.currentRoom.isAccessible(this.x + this.width - this.speed, 
-                                                 this.y + this.width / 2 - this.speed))) {
+                                                 this.y + this.width / 3 - this.speed))) {
+                // Add this.width / 3 to allow partially overlapping blocks above. 
+                // This helps provide the illusion of depth
 
                 this.y -= this.speed;
                 this.x += xAlign;

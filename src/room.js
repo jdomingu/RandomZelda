@@ -1,4 +1,4 @@
-RZ.Room = function () {
+RZ.Room = function (x, y) {
     // Set default values
     this.roomType = 'seed'; // Or 'branch', 'fake', 'boss'
     this.roomLayout = 'empty'; // Or 'entrance', 'four', 'five', etc.
@@ -9,6 +9,8 @@ RZ.Room = function () {
     this.door.right = 'none';
     this.width = 48; // Tile width and height
     this.height = 48;
+    this.x = x; // Location on the dungeon grid
+    this.y = y;
 };
 
 RZ.Room.prototype = {
@@ -34,12 +36,28 @@ RZ.Room.prototype = {
     ],
 
     doorPixelCoords: {
+        // Denotes the space that Link can walk into. Necessary because side doors
+        // align with a half-grid
         // [[upper left x, upper left y], [lower right x, lower right y]
         left: [[0, 250], [96, 295]], // Left and right doors have narrower heights 
         up: [[360, 0], [408, 96]],  // because Link can usually overlap objects
         right: [[672, 250], [768, 295]], // to give the appearance of him walking
         down: [[360, 432], [408, 528]]  // in front of things
     }, 
+
+   /* If Link stands in one of these zones, trigger
+    * a transition to another room
+    * [dest_x, dest_y, width, height] */
+    doorTransitionZones: {
+        // Denotes the space that Link can walk into. Necessary because side doors
+        // align with a half-grid
+        // [[upper left x, upper left y], [lower right x, lower right y]
+        left: [[0, 235], [24, 295]],
+        up: [[360, 0], [408, 24]], 
+        right: [[711, 235], [768, 295]], 
+        down: [[360, 476], [408, 528]] 
+    }, 
+
 
     draw: function (bg, fg) {
         var bgContext = bg.getContext('2d'),
@@ -183,7 +201,7 @@ RZ.Room.prototype = {
     },
 
     generateAccessibleCoords: function () {
-		var accessibleCoords = this.defaultAccessibleCoords.slice(),
+		var accessibleCoords = JSON.parse(JSON.stringify(this.defaultAccessibleCoords)), 
 			layout = this.layouts[this.roomLayout],
 			rowsLen = layout.length,
 			colsLen;
@@ -236,6 +254,43 @@ RZ.Room.prototype = {
         }
     },
 
+    checkDoorTransition: function (x, y) {
+        // Is this space on the far edge of a door, necessitating a transition between rooms?
+        for (var door in this.door) {
+            if (this.door[door] === 'open') {
+                if (x >= this.doorTransitionZones[door][0][0] && x <= this.doorTransitionZones[door][1][0] &&
+                    y >= this.doorTransitionZones[door][0][1] && y <= this.doorTransitionZones[door][1][1]) {
+
+                    var nextRoomX = this.x, 
+                        nextRoomY = this.y,
+                        nextPlayerX,
+                        nextPlayerY;
+
+                    if (door === 'left') {
+                        nextPlayerX = 708;
+                        nextPlayerY= 240;
+                        nextRoomX -= 1;
+                    } else if (door === 'right') {
+                        nextPlayerX = 28;
+                        nextPlayerY= 240;
+                        nextRoomX += 1;
+                    } else if (door === 'up') {
+                        nextPlayerX= 360;
+                        nextPlayerY= 472;
+                        nextRoomY -= 1;
+                    } else if (door === 'down') {
+                        nextPlayerX= 360;
+                        nextPlayerY= 28;
+                        nextRoomY += 1;
+                    }
+
+                    RZ.Screen.roomTransition(nextRoomX, nextRoomY, nextPlayerX, nextPlayerY);
+                    return true;
+                }
+            }
+        }
+        return false;
+    },
 
     convertPixelsToCoords: function (x, y) {
         var coordX = Math.floor(x / this.width),

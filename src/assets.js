@@ -151,7 +151,7 @@ RZ.Assets = {
                 'locked': [408, 1272, 288, 480, 192, 24]
             }
         },
-        
+     
        /* Walls
         * [source_x, source_y, dest_x, dest_y, width, height]
         */
