@@ -3,9 +3,9 @@ RZ.Screen = {
         var mainDiv = document.getElementById(id), // The div serves as a container
             headsUpDisplayHeight = 192,            // that hides overflow
             width = mainDiv.clientWidth, // Get the dimensions of the div
-            height = mainDiv.clientHeight, 
+            height = mainDiv.clientHeight,
             heightMinusHUD = height - headsUpDisplayHeight;
-        
+
         this.mapStartTop = 0 - heightMinusHUD;
         this.roomStartTop = headsUpDisplayHeight;
 
@@ -21,7 +21,7 @@ RZ.Screen = {
         this.map.style.background = 'transparent';
         this.map.style.zIndex = 0;
         mainDiv.appendChild(this.map);
-        
+
         // The foreground canvas is for the room frame (i.e. Link walks under
         // the wall frame when going through doors
         this.fg = document.createElement('canvas');
@@ -91,8 +91,8 @@ RZ.Screen = {
         RZ.Game.currentRoom.accessibleCoords = RZ.Game.currentRoom.generateAccessibleCoords();
 
         // Clear the canvas before drawing
-        bgContext.clearRect(0, 0, this.bg.width, this.bg.height);        
-        fgContext.clearRect(0, 0, this.fg.width, this.fg.height);        
+        bgContext.clearRect(0, 0, this.bg.width, this.bg.height);
+        fgContext.clearRect(0, 0, this.fg.width, this.fg.height);
         RZ.Game.currentRoom.draw(RZ.Screen.bg, RZ.Screen.fg);
 
         RZ.Game.locked = false;
@@ -108,11 +108,11 @@ RZ.Screen = {
             return;
         } else if (diff < 0) {
             canvas.style[side] = parseInt(start) + dist;
-        } else if (diff > 0) { 
+        } else if (diff > 0) {
             canvas.style[side] = parseInt(start) - dist;
         }
 
-        setTimeout(function () { 
+        setTimeout(function () {
             RZ.Screen.transition(canvas, canvas.style[side], end, side);
         }, 10);
     }

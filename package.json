@@ -1,13 +1,13 @@
 {
   "name": "RandomZelda",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "description": "A randomly-generated dungeon game inspired by Legend of Zelda",
   "dependencies": {},
   "devDependencies": {
     "gulp": "^3.8.11",
     "gulp-concat": "^2.5.2",
-    "gulp-jshint": "^1.10.0",
+    "gulp-jshint": "^2.0.4",
     "gulp-plumber": "^1.0.0",
     "gulp-watch": "^4.2.4"
   },

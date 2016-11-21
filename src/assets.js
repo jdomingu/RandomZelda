@@ -113,7 +113,7 @@ RZ.Assets = {
                 'locked': [408, 1368, 288, 432, 192, 48]
             }
         },
-       
+
         door_frames: {
             left: {
                 'open': [0, 1152, 24, 192, 24, 144],
@@ -151,7 +151,7 @@ RZ.Assets = {
                 'locked': [408, 1272, 288, 480, 192, 24]
             }
         },
-     
+
        /* Walls
         * [source_x, source_y, dest_x, dest_y, width, height]
         */
@@ -172,6 +172,5 @@ RZ.Assets = {
             right: [744, 624, 744, 0, 24, 528],
             down: [24, 1128, 24, 504, 720, 24]
         },
-        
     }
 };

@@ -33,9 +33,9 @@ RZ.Map.prototype = {
 
         // Add map background fill
         this.context.fillStyle = this.MAP_BG;
-        this.context.fillRect(this.WIDTH_OFFSET - this.PADDING, this.HEIGHT_OFFSET - this.PADDING, 
+        this.context.fillRect(this.WIDTH_OFFSET - this.PADDING, this.HEIGHT_OFFSET - this.PADDING,
                 this.MAP_WIDTH + this.PADDING * 2, this.MAP_HEIGHT + this.PADDING * 2);
-        
+
         while (existingLen > 0) {
             existingLen = existingLen - 1;
             roomToDraw = existingRooms[existingLen];
@@ -81,7 +81,7 @@ RZ.Map.prototype = {
             coord;
 
         for (doorDir in roomDoors) {
-            
+
             if (doorDir === 'up') {
                 coord = new RZ.Coord(doorCoords[0] + bigDelta, doorCoords[1]);
             } else if (doorDir === 'down') {

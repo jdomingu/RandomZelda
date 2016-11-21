@@ -20,8 +20,8 @@ RZ.Player.prototype = {
 
     update: function () {
         this.context.clearRect(this.x, this.y, this.width, this.height);
-    
         this.toggleAnimation();
+
         if (RZ.Game.currentRoom.checkDoorTransition(this.x, this.y) === false) {
            this.move();
         }
@@ -32,7 +32,7 @@ RZ.Player.prototype = {
     move: function () {
         /* Gets two pairs of coordinates in the direction of movement and
          * ensures that the adjacent tile or tiles can be entered.
-         * To make going around corners easier, contract the coordinates 
+         * To make going around corners easier, contract the coordinates
          * toward the player's center by an amount equal to the player's speed. */
         var origY = this.y,
             xAlign = this.getGridAlign(this.x),
@@ -41,9 +41,9 @@ RZ.Player.prototype = {
         if (RZ.Keyboard.isDown('W')) { // Ex. When going up, get the upper left and upper
             if (RZ.Game.currentRoom.isAccessible(this.x + this.speed, // right coordinates
                                                  this.y + this.width / 3 - this.speed) &&
-               (RZ.Game.currentRoom.isAccessible(this.x + this.width - this.speed, 
+               (RZ.Game.currentRoom.isAccessible(this.x + this.width - this.speed,
                                                  this.y + this.width / 3 - this.speed))) {
-                // Add this.width / 3 to allow partially overlapping blocks above. 
+                // Add this.width / 3 to allow partially overlapping blocks above.
                 // This helps provide the illusion of depth
 
                 this.y -= this.speed;
@@ -51,26 +51,26 @@ RZ.Player.prototype = {
             }
             this.sx = RZ.Assets.legend.link[2][0];
         } else if (RZ.Keyboard.isDown('S')) {
-            if (RZ.Game.currentRoom.isAccessible(this.x + this.speed, 
+            if (RZ.Game.currentRoom.isAccessible(this.x + this.speed,
                                                  this.y + this.width  + this.speed) &&
-               (RZ.Game.currentRoom.isAccessible(this.x + this.width - this.speed, 
+               (RZ.Game.currentRoom.isAccessible(this.x + this.width - this.speed,
                                                  this.y + this.width  + this.speed)) ) {
 
                 this.y += this.speed;
-                this.x += xAlign; 
+                this.x += xAlign;
             }
             this.sx = RZ.Assets.legend.link[0][0];
-        } 
-        
+        }
+
         if (origY === this.y) {
         /* Only allow lateral movement if not moving vertically (do not allow diagonal movement)
          * At the edge of the screen, the player can hold two keys without being frozen in place
-         * E.g. If the player walks up to the top, holding up and right simultaneously allows 
+         * E.g. If the player walks up to the top, holding up and right simultaneously allows
          * the player to move right */
-            if (RZ.Keyboard.isDown('A')) { 
-                 if (RZ.Game.currentRoom.isAccessible(this.x - this.speed, 
+            if (RZ.Keyboard.isDown('A')) {
+                 if (RZ.Game.currentRoom.isAccessible(this.x - this.speed,
                                                       this.y + this.width / 2 + this.speed) &&
-                    (RZ.Game.currentRoom.isAccessible(this.x - this.speed, 
+                    (RZ.Game.currentRoom.isAccessible(this.x - this.speed,
                                                       this.y + this.width - this.speed))) {
 
                     this.x -= this.speed;
@@ -78,9 +78,9 @@ RZ.Player.prototype = {
                 }
                 this.sx = RZ.Assets.legend.link[1][0];
             } else if (RZ.Keyboard.isDown('D')) {
-                if (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed, 
+                if (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed,
                                                      this.y + this.width / 2 + this.speed) &&
-                   (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed, 
+                   (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed,
                                                      this.y + this.width - this.speed))) {
 
                     this.x += this.speed;

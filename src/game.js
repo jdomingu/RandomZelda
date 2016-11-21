@@ -7,7 +7,7 @@ var RZ = RZ || {};
 RZ.Game = {
     init: function (id, seed) {
         var rooms, map;
-        
+
         RZ.Screen.init(id); // Set up canvases
 
         this.dungeon = new RZ.Dungeon(RZ.Screen.map.width, RZ.Screen.map.height, seed); // Create dungeon object
@@ -19,7 +19,7 @@ RZ.Game = {
         this.player = new RZ.Player(RZ.Screen.main);
 
         return [this.dungeon.grid, rooms, map];
-    }, 
+    },
 
     run: function (obj) {
         var grid = obj[0],
@@ -30,11 +30,11 @@ RZ.Game = {
             map.draw(grid, rooms);
             RZ.Game.currentRoom.draw(RZ.Screen.bg, RZ.Screen.fg);
             RZ.Game.player.drawOnce();
-        }; 
+        };
 
         RZ.Assets.init(startDrawing); // Load images, then call the startDrawing callback
         RZ.Keyboard.init(); // Start keyboard events
-        
+
         this.main();
     },
 

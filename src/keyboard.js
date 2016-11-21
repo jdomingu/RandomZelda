@@ -9,7 +9,7 @@ RZ.Keyboard = {
           RZ.Keyboard.hasFired[e.keyCode] = false;
         };
 
-        var mapKey = 'SHIFT', // Pressing shift should only toggle 
+        var mapKey = 'SHIFT', // Pressing shift should only toggle
             keyCode = RZ.Keyboard.codes[mapKey]; // the map once
         RZ.Keyboard.hasFired[keyCode] = false;
     },
@@ -48,7 +48,7 @@ RZ.Keyboard = {
     checkMapToggle: function () {
         var mapKey = 'SHIFT',
             keyCode = RZ.Keyboard.codes[mapKey];
-        
+
         if (RZ.Keyboard.isDown(mapKey)) {
 
             if (RZ.Keyboard.hasFired[keyCode] === false) {
@@ -62,7 +62,7 @@ RZ.Keyboard = {
                     RZ.Game.paused = false;
                     RZ.Screen.mapTransition('going');
                 }
-            } 
+            }
         }
     }
 

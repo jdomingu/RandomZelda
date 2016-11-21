@@ -1,8 +1,8 @@
 RZ.Dungeon = function(width, height, seed) {
     // Declare static settings
-    this.WIDTH = width / 2; 
+    this.WIDTH = width / 2;
     this.HEIGHT = height / 3;
-    this.ROOM_SIZE = 24; 
+    this.ROOM_SIZE = 24;
     this.NUM_ROOMS = 25; // The map must be a minimum of 6 rooms
     this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
     this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
@@ -14,18 +14,18 @@ RZ.Dungeon = function(width, height, seed) {
 
     // Generate the grid
     this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
-    this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(this.START_X, this.START_Y); 
+    this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(this.START_X, this.START_Y);
     this.startRoom.roomLayout = 'entrance';
-    
-    // For testing, use numbers generated from a seed value instead of 
+
+    // For testing, use numbers generated from a seed value instead of
     // from Math.random so that you can get repeatable results
     var seedVal = (undefined === seed) ? Date.now() : seed;
     this.random = Math.seed(seedVal);
     this.initialPosition = new RZ.Coord(this.START_X, this.START_Y);
     this.startingCoords = [this.initialPosition];
     this.edgeCoords = [this.initialPosition];
-    this.color = this.getRandomColor(); 
-    
+    this.color = this.getRandomColor();
+
     // Keep track of rooms on the edge that haven't been boxed in
     // so that you can generate branches on those rooms
     this.branches = [];
@@ -50,12 +50,12 @@ RZ.Dungeon.prototype = {
         existingRoomCoords = this.makeBranches(this.grid, existingRoomCoords, this.NUM_BRANCH_ROOMS, this.MAX_BRANCH_LEN);
 
         // Sort the branches in-place by distance from the start
-        this.branches.sort(function (a, b) { 
+        this.branches.sort(function (a, b) {
             Math.sqrd = (function (x) { return x * x; });
             var distA = Math.sqrt(Math.sqrd(a[0].x - that.START_X) + Math.sqrd(a[0].y - that.START_Y)),
                 distB = Math.sqrt(Math.sqrd(b[0].x - that.START_X) + Math.sqrd(b[0].y- that.START_Y));
            return distB - distA;
-        }); 
+        });
 
         // Make a boss room at the end of the branch farthest from the start
         this.makeBossRoom(this.grid, existingRoomCoords, this.branches);
@@ -63,8 +63,8 @@ RZ.Dungeon.prototype = {
         return existingRoomCoords;
     },
 
+    // Make an empty 2D grid to hold rooms that get created.
     make2DGrid: function (numColumns, numRows) {
-        // Make an empty 2D grid to hold rooms that get created. 
         var grid = [];
 
         while (numColumns > 0) {
@@ -79,10 +79,10 @@ RZ.Dungeon.prototype = {
         }
 
         return grid;
-    }, 
-    
-    makeRooms: function (grid, existingRoomCoords, coords, numRoomsRemaining, jumpsAllowed) {
+    },
+
     // Walk a random path, generating rooms as you go.
+    makeRooms: function (grid, existingRoomCoords, coords, numRoomsRemaining, jumpsAllowed) {
         var nextRoomCoord;
 
         if (numRoomsRemaining < 1) {
@@ -90,7 +90,7 @@ RZ.Dungeon.prototype = {
         } else {
             nextRoomCoord = this.getRandomCoords(grid, existingRoomCoords, this.edgeCoords, coords, jumpsAllowed);
 
-            // If you get boxed in on a branch, return the existing rooms instead of jumping to 
+            // If you get boxed in on a branch, return the existing rooms instead of jumping to
             // another random room and continuing. This prevents discontinuous branches.
             if (nextRoomCoord !== coords) {
                 grid[nextRoomCoord.x][nextRoomCoord.y] = new RZ.Room(nextRoomCoord.x, nextRoomCoord.y);
@@ -107,25 +107,25 @@ RZ.Dungeon.prototype = {
         }
     },
 
-    filterEdgeCoords: function (grid, edgeCoords) {
     // Filter out rooms that have been boxed in, that is, which have already have
     // four neighboring rooms
+    filterEdgeCoords: function (grid, edgeCoords) {
         var edgeCoordsLen = edgeCoords.length,
             filteredCoords = [],
             isEdge;
 
         for (var i = 0; i < edgeCoordsLen; i++) {
             if (this.isEdge(grid, edgeCoords[i])) {
-                filteredCoords.push(edgeCoords[i]); 
-            }   
+                filteredCoords.push(edgeCoords[i]);
+            }
         }
 
         return filteredCoords;
     },
 
-    connectSeedRooms: function (grid, existingRoomCoords) {
-    // Create open doors between all seed rooms 
+    // Create open doors between all seed rooms
     // Call this function before creating branch rooms
+    connectSeedRooms: function (grid, existingRoomCoords) {
         var existingRoomLen = existingRoomCoords.length,
             currentCoord,
             coordsToConnect,
@@ -135,7 +135,7 @@ RZ.Dungeon.prototype = {
             openDoorDir,
             x,
             y;
-        
+
         for (var i = 0; i < existingRoomLen; i++) {
             currentCoord = existingRoomCoords[i];
             adjCoords = currentCoord.getAdjacentCoords();
@@ -175,7 +175,7 @@ RZ.Dungeon.prototype = {
             this.makeRooms(grid, existingRoomCoords, randStart, branchLen, false);
             diffInLen = existingRoomCoords.length - currentExistingCoordsLen;
             // If the branch gets boxed in, it might not return the desired branch length.
-            // Track the actual returned branch length with the difference to existingRoomCoords 
+            // Track the actual returned branch length with the difference to existingRoomCoords
 
             for (var i = 0; i < diffInLen; i++) {
                 currentBranch.push(existingRoomCoords[existingRoomCoords.length - diffInLen + i]);

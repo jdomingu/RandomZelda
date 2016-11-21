@@ -39,11 +39,11 @@ RZ.Room.prototype = {
         // Denotes the space that Link can walk into. Necessary because side doors
         // align with a half-grid
         // [[upper left x, upper left y], [lower right x, lower right y]
-        left: [[0, 250], [96, 295]], // Left and right doors have narrower heights 
+        left: [[0, 250], [96, 295]], // Left and right doors have narrower heights
         up: [[360, 0], [408, 96]],  // because Link can usually overlap objects
         right: [[672, 250], [768, 295]], // to give the appearance of him walking
         down: [[360, 432], [408, 528]]  // in front of things
-    }, 
+    },
 
    /* If Link stands in one of these zones, trigger
     * a transition to another room
@@ -53,10 +53,10 @@ RZ.Room.prototype = {
         // align with a half-grid
         // [[upper left x, upper left y], [lower right x, lower right y]
         left: [[0, 235], [24, 295]],
-        up: [[360, 0], [408, 24]], 
-        right: [[711, 235], [768, 295]], 
-        down: [[360, 476], [408, 528]] 
-    }, 
+        up: [[360, 0], [408, 24]],
+        right: [[711, 235], [768, 295]],
+        down: [[360, 476], [408, 528]]
+    },
 
 
     draw: function (bg, fg) {
@@ -73,7 +73,7 @@ RZ.Room.prototype = {
             door_frames_contrast = RZ.Assets.legend.door_frames_contrast,
             rowsLen = layout.length,
             colsLen;
-        
+
         // Draw grayscale walls without doors
         bgContext.drawImage(RZ.Assets.img.tiles, walls[0], walls[1], walls[4], walls[5], walls[2], walls[3], walls[4], walls[5]);
         // Draw grayscale tiles in the center of the room
@@ -100,7 +100,7 @@ RZ.Room.prototype = {
             layout = this.layouts[this.roomLayout],
             rowsLen = layout.length,
             colsLen;
-        
+
         for (var i = 0; i < rowsLen; i++) {
             colsLen = layout[i].length;
 
@@ -201,11 +201,11 @@ RZ.Room.prototype = {
     },
 
     generateAccessibleCoords: function () {
-		var accessibleCoords = JSON.parse(JSON.stringify(this.defaultAccessibleCoords)), 
+		var accessibleCoords = JSON.parse(JSON.stringify(this.defaultAccessibleCoords)),
 			layout = this.layouts[this.roomLayout],
 			rowsLen = layout.length,
 			colsLen;
-        
+
         if (this.roomLayout !== 'empty') { // If the room is empty, don't iterate
             for (var i = 0; i < rowsLen; i++) { // through the tiles
                 colsLen = layout[i].length;
@@ -228,14 +228,14 @@ RZ.Room.prototype = {
 	},
 
     isAccessible: function (x, y) {
-        var coords = this.convertPixelsToCoords(x, y); 
+        var coords = this.convertPixelsToCoords(x, y);
 
         if (coords[0] >= 0 && coords[0] < this.accessibleCoords.length &&
                 coords[1] >= 0 && coords[1] < this.accessibleCoords[coords[0]].length) {
             if (this.accessibleCoords[coords[0]][coords[1]] === 0 ||
                     this.isAccessibleDoor(x, y) === true) {
                 return true;
-            } 
+            }
         }
 
         return false;
@@ -261,7 +261,7 @@ RZ.Room.prototype = {
                 if (x >= this.doorTransitionZones[door][0][0] && x <= this.doorTransitionZones[door][1][0] &&
                     y >= this.doorTransitionZones[door][0][1] && y <= this.doorTransitionZones[door][1][1]) {
 
-                    var nextRoomX = this.x, 
+                    var nextRoomX = this.x,
                         nextRoomY = this.y,
                         nextPlayerX,
                         nextPlayerY;
@@ -298,5 +298,4 @@ RZ.Room.prototype = {
 
         return [coordX, coordY];
     }
-    
 };
