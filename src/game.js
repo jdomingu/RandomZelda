@@ -7,7 +7,8 @@ var Player = require('./player');
 var Screen = require('./screen');
 
 var Game = {
-    init: function (id, seed) { var rooms, map;
+    init: function (id, seed) {
+        var rooms, map;
         Screen.init(id); // Set up canvases
 
         this.dungeon = new Dungeon(Screen.map.width, Screen.map.height, seed); // Create dungeon object

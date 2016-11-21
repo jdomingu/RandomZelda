@@ -245,6 +245,7 @@ Dungeon.prototype = {
                 bossCoords = branches[0][branchLen - 1];
                 bossFoyerCoords = branches[0][branchLen - 2];
                 grid[bossCoords.x][bossCoords.y].roomType = 'boss';
+                grid[bossCoords.x][bossCoords.y].roomLayout = 'triforce';
 
                 // Add a locked door to the boss room
                 lockedDoorDir = this.getDoorDirection(bossCoords, bossFoyerCoords);
