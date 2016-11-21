@@ -17,11 +17,7 @@ var Dungeon = function(width, height, seed) {
 
     // Generate the grid
     this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
-<<<<<<< HEAD
     this.startRoom = this.grid[this.START_X][this.START_Y] = new Room(this.START_X, this.START_Y);
-=======
-    this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(this.START_X, this.START_Y);
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
     this.startRoom.roomLayout = 'entrance';
 
     // For testing, use numbers generated from a seed value instead of

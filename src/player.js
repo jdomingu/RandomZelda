@@ -25,11 +25,7 @@ Player.prototype = {
         this.context.clearRect(this.x, this.y, this.width, this.height);
         this.toggleAnimation();
 
-<<<<<<< HEAD
         if (Game.currentRoom.checkDoorTransition(this.x, this.y) === false) {
-=======
-        if (RZ.Game.currentRoom.checkDoorTransition(this.x, this.y) === false) {
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
            this.move();
         }
 
@@ -48,11 +44,7 @@ Player.prototype = {
         if (Keyboard.isDown('W')) { // Ex. When going up, get the upper left and upper
             if (Game.currentRoom.isAccessible(this.x + this.speed, // right coordinates
                                                  this.y + this.width / 3 - this.speed) &&
-<<<<<<< HEAD
                (Game.currentRoom.isAccessible(this.x + this.width - this.speed,
-=======
-               (RZ.Game.currentRoom.isAccessible(this.x + this.width - this.speed,
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
                                                  this.y + this.width / 3 - this.speed))) {
                 // Add this.width / 3 to allow partially overlapping blocks above.
                 // This helps provide the illusion of depth
@@ -60,29 +52,17 @@ Player.prototype = {
                 this.y -= this.speed;
                 this.x += xAlign;
             }
-<<<<<<< HEAD
             this.sx = Assets.legend.link[2][0];
         } else if (Keyboard.isDown('S')) {
             if (Game.currentRoom.isAccessible(this.x + this.speed,
                                                  this.y + this.width  + this.speed) &&
                (Game.currentRoom.isAccessible(this.x + this.width - this.speed,
-=======
-            this.sx = RZ.Assets.legend.link[2][0];
-        } else if (RZ.Keyboard.isDown('S')) {
-            if (RZ.Game.currentRoom.isAccessible(this.x + this.speed,
-                                                 this.y + this.width  + this.speed) &&
-               (RZ.Game.currentRoom.isAccessible(this.x + this.width - this.speed,
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
-                                                 this.y + this.width  + this.speed)) ) {
+                                                this.y + this.width  + this.speed)) ) {
 
                 this.y += this.speed;
                 this.x += xAlign;
             }
-<<<<<<< HEAD
             this.sx = Assets.legend.link[0][0];
-=======
-            this.sx = RZ.Assets.legend.link[0][0];
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
         }
 
         if (origY === this.y) {
@@ -90,35 +70,20 @@ Player.prototype = {
          * At the edge of the screen, the player can hold two keys without being frozen in place
          * E.g. If the player walks up to the top, holding up and right simultaneously allows
          * the player to move right */
-<<<<<<< HEAD
             if (Keyboard.isDown('A')) {
                  if (Game.currentRoom.isAccessible(this.x - this.speed,
                                                       this.y + this.width / 2 + this.speed) &&
                     (Game.currentRoom.isAccessible(this.x - this.speed,
-=======
-            if (RZ.Keyboard.isDown('A')) {
-                 if (RZ.Game.currentRoom.isAccessible(this.x - this.speed,
-                                                      this.y + this.width / 2 + this.speed) &&
-                    (RZ.Game.currentRoom.isAccessible(this.x - this.speed,
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
                                                       this.y + this.width - this.speed))) {
 
                     this.x -= this.speed;
                     this.y += yAlign;
                 }
-<<<<<<< HEAD
                 this.sx = Assets.legend.link[1][0];
             } else if (Keyboard.isDown('D')) {
                 if (Game.currentRoom.isAccessible(this.x + this.width + this.speed,
                                                      this.y + this.width / 2 + this.speed) &&
                    (Game.currentRoom.isAccessible(this.x + this.width + this.speed,
-=======
-                this.sx = RZ.Assets.legend.link[1][0];
-            } else if (RZ.Keyboard.isDown('D')) {
-                if (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed,
-                                                     this.y + this.width / 2 + this.speed) &&
-                   (RZ.Game.currentRoom.isAccessible(this.x + this.width + this.speed,
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
                                                      this.y + this.width - this.speed))) {
 
                     this.x += this.speed;

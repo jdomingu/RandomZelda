@@ -93,11 +93,7 @@ var Screen = {
         // Clear the canvas before drawing
         bgContext.clearRect(0, 0, this.bg.width, this.bg.height);
         fgContext.clearRect(0, 0, this.fg.width, this.fg.height);
-<<<<<<< HEAD
         Game.currentRoom.draw(Screen.bg, Screen.fg);
-=======
-        RZ.Game.currentRoom.draw(RZ.Screen.bg, RZ.Screen.fg);
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
 
         Game.locked = false;
     },
@@ -117,11 +113,7 @@ var Screen = {
         }
 
         setTimeout(function () {
-<<<<<<< HEAD
             Screen.transition(canvas, canvas.style[side], end, side);
-=======
-            RZ.Screen.transition(canvas, canvas.style[side], end, side);
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
         }, 10);
     }
 };

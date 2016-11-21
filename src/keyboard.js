@@ -12,13 +12,8 @@ var Keyboard = {
         };
 
         var mapKey = 'SHIFT', // Pressing shift should only toggle
-<<<<<<< HEAD
             keyCode = Keyboard.codes[mapKey]; // the map once
         Keyboard.hasFired[keyCode] = false;
-=======
-            keyCode = RZ.Keyboard.codes[mapKey]; // the map once
-        RZ.Keyboard.hasFired[keyCode] = false;
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
     },
 
     states: {},
@@ -54,15 +49,9 @@ var Keyboard = {
 
     checkMapToggle: function () {
         var mapKey = 'SHIFT',
-<<<<<<< HEAD
             keyCode = Keyboard.codes[mapKey];
 
         if (Keyboard.isDown(mapKey)) {
-=======
-            keyCode = RZ.Keyboard.codes[mapKey];
-
-        if (RZ.Keyboard.isDown(mapKey)) {
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
 
             if (Keyboard.hasFired[keyCode] === false) {
                 Keyboard.hasFired[keyCode] = true;

@@ -5,18 +5,10 @@
   "description": "A randomly-generated dungeon game inspired by Legend of Zelda",
   "dependencies": {},
   "devDependencies": {
-<<<<<<< HEAD
     "faucet": "0.0.1",
     "tape": "^4.6.2",
     "webpack": "^1.13.3",
     "webpack-dev-server": "^1.16.2"
-=======
-    "gulp": "^3.8.11",
-    "gulp-concat": "^2.5.2",
-    "gulp-jshint": "^2.0.4",
-    "gulp-plumber": "^1.0.0",
-    "gulp-watch": "^4.2.4"
->>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
   },
   "scripts": {
     "start": "webpack",
