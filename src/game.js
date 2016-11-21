@@ -1,4 +1,5 @@
-var Assets = require('./assets'); var Coord = require('./coord');
+var Assets = require('./assets');
+var Coord = require('./coord');
 var Dungeon = require('./dungeon');
 var Keyboard = require('./keyboard');
 var Maps = require('./map');
