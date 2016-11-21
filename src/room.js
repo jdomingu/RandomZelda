@@ -1,4 +1,7 @@
-RZ.Room = function (x, y) {
+var Assets = require('./assets');
+var Screen = require('./screen');
+
+var Room = function (x, y) {
     // Set default values
     this.roomType = 'seed'; // Or 'branch', 'fake', 'boss'
     this.roomLayout = 'empty'; // Or 'entrance', 'four', 'five', etc.
@@ -13,7 +16,7 @@ RZ.Room = function (x, y) {
     this.y = y;
 };
 
-RZ.Room.prototype = {
+Room.prototype = {
     wallWidth: 96,
 
     defaultAccessibleCoords: [
@@ -63,31 +66,31 @@ RZ.Room.prototype = {
         var bgContext = bg.getContext('2d'),
             fgContext = fg.getContext('2d'),
             layout = this.layouts[this.roomLayout],
-            walls = RZ.Assets.legend.walls,
-            walls_contrast = RZ.Assets.legend.walls_contrast,
-            wall_frames = RZ.Assets.legend.wall_frames,
-            wall_frames_contrast = RZ.Assets.legend.wall_frames_contrast,
-            doors = RZ.Assets.legend.doors,
-            doors_contrast = RZ.Assets.legend.doors_contrast,
-            door_frames = RZ.Assets.legend.door_frames,
-            door_frames_contrast = RZ.Assets.legend.door_frames_contrast,
+            walls = Assets.legend.walls,
+            walls_contrast = Assets.legend.walls_contrast,
+            wall_frames = Assets.legend.wall_frames,
+            wall_frames_contrast = Assets.legend.wall_frames_contrast,
+            doors = Assets.legend.doors,
+            doors_contrast = Assets.legend.doors_contrast,
+            door_frames = Assets.legend.door_frames,
+            door_frames_contrast = Assets.legend.door_frames_contrast,
             rowsLen = layout.length,
             colsLen;
 
         // Draw grayscale walls without doors
-        bgContext.drawImage(RZ.Assets.img.tiles, walls[0], walls[1], walls[4], walls[5], walls[2], walls[3], walls[4], walls[5]);
+        bgContext.drawImage(Assets.img.tiles, walls[0], walls[1], walls[4], walls[5], walls[2], walls[3], walls[4], walls[5]);
         // Draw grayscale tiles in the center of the room
-        this.drawLayer(bg, RZ.Assets.legend.tiles);
+        this.drawLayer(bg, Assets.legend.tiles);
 
         // Draw a semi-transparent fill between layers
-        bgContext.fillStyle = RZ.Game.color;
+        bgContext.fillStyle = Game.color;
         bgContext.globalAlpha = 0.5;
         bgContext.fillRect(walls[2], walls[3], walls[4], walls[5]);
         bgContext.globalAlpha = 1.0;
 
         // Draw a black, high-contrast layer of the walls without doors
-        bgContext.drawImage(RZ.Assets.img.tiles, walls_contrast[0], walls_contrast[1], walls_contrast[4], walls_contrast[5], walls_contrast[2], walls_contrast[3], walls_contrast[4], walls_contrast[5]);
-        this.drawLayer(bg, RZ.Assets.legend.tiles_contrast);
+        bgContext.drawImage(Assets.img.tiles, walls_contrast[0], walls_contrast[1], walls_contrast[4], walls_contrast[5], walls_contrast[2], walls_contrast[3], walls_contrast[4], walls_contrast[5]);
+        this.drawLayer(bg, Assets.legend.tiles_contrast);
 
         // Draw the doors in separate layers as well
         this.drawDoors(bgContext, doors, doors_contrast, fgContext, door_frames, door_frames_contrast);
@@ -110,7 +113,7 @@ RZ.Room.prototype = {
                     sx = tiles[layout[i][j]][1],
                     sy = tiles[layout[i][j]][0];
 
-                context.drawImage(RZ.Assets.img.tiles, sx, sy, this.width, this.height, x, y, this.width, this.height);
+                context.drawImage(Assets.img.tiles, sx, sy, this.width, this.height, x, y, this.width, this.height);
             }
         }
     },
@@ -132,7 +135,7 @@ RZ.Room.prototype = {
             dy = wall_legend[wall][3];
             width = wall_legend[wall][4];
             height = wall_legend[wall][5];
-            context.drawImage(RZ.Assets.img.tiles, sx, sy, width, height, dx, dy, width, height);
+            context.drawImage(Assets.img.tiles, sx, sy, width, height, dx, dy, width, height);
         }
     },
 
@@ -147,7 +150,7 @@ RZ.Room.prototype = {
             width = wall_legend[wall][4];
             height = wall_legend[wall][5];
 
-            context.fillStyle = RZ.Game.color;
+            context.fillStyle = Game.color;
             context.globalAlpha = 0.5;
             context.fillRect(dx, dy, width, height);
             context.globalAlpha = 1.0;
@@ -177,7 +180,7 @@ RZ.Room.prototype = {
                 dy = doors_legend[door][this.door[door]][3];
                 width = doors_legend[door][this.door[door]][4];
                 height = doors_legend[door][this.door[door]][5];
-                context.drawImage(RZ.Assets.img.tiles, sx, sy, width, height, dx, dy, width, height);
+                context.drawImage(Assets.img.tiles, sx, sy, width, height, dx, dy, width, height);
             }
         }
     },
@@ -192,7 +195,7 @@ RZ.Room.prototype = {
                 width = doors_legend[door][this.door[door]][4];
                 height = doors_legend[door][this.door[door]][5];
 
-                context.fillStyle = RZ.Game.color;
+                context.fillStyle = Game.color;
                 context.globalAlpha = 0.5;
                 context.fillRect(dx, dy, width, height);
                 context.globalAlpha = 1.0;
@@ -284,7 +287,7 @@ RZ.Room.prototype = {
                         nextRoomY += 1;
                     }
 
-                    RZ.Screen.roomTransition(nextRoomX, nextRoomY, nextPlayerX, nextPlayerY);
+                    Screen.roomTransition(nextRoomX, nextRoomY, nextPlayerX, nextPlayerY);
                     return true;
                 }
             }
@@ -299,3 +302,186 @@ RZ.Room.prototype = {
         return [coordX, coordY];
     }
 };
+
+// A list of room layouts to use for normal (i.e. not start or end) rooms
+Room.prototype.normalLayouts = ['empty', 'one', 'two', 'four',
+                                   'five', 'water_path', 'water_brackets',
+                                   'diagonal'];
+/* Layout Legend
+ * Entrance - start room with statues
+ * Empty - all blank tiles
+ * One - one island of blocks in the center
+ * Two- two islands of blocks on the sides
+ * Four - four blocks near the corners
+ * Five - five groups of blocks in an X formation
+ * Water Brackets - water fills two bracket shaped trenches
+ * Water Path - a path connects the doors, otherwise the room is all water
+ */
+Room.prototype.layouts = {
+    'entrance': [
+        [0,0,0,0,0,0,0],
+        [0,2,0,2,0,2,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,4,4],
+        [0,2,0,2,0,2,4],
+        [0,0,0,0,4,4,4],
+        [0,0,0,0,4,4,4],
+        [0,3,0,3,0,3,4],
+        [0,0,0,0,0,4,4],
+        [0,0,0,0,0,0,0],
+        [0,3,0,3,0,3,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'empty': [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'triforce': [
+        [0,0,0,0,0,0,0],
+        [0,1,1,1,1,1,0],
+        [0,1,0,0,0,1,0],
+        [0,1,0,2,0,1,0],
+        [0,1,2,0,0,1,0],
+        [0,1,0,0,0,0,0],
+        [0,1,0,0,0,0,0],
+        [0,1,3,0,0,1,0],
+        [0,1,0,3,0,1,0],
+        [0,1,0,0,0,1,0],
+        [0,1,1,1,1,1,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'one': [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'two': [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,1,1,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'four': [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,0,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,0,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'five': [
+        [0,0,0,0,0,0,0],
+        [0,1,0,0,0,1,0],
+        [0,1,0,0,0,1,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,1,0,0,0],
+        [0,0,0,1,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,1,0,0,0,1,0],
+        [0,1,0,0,0,1,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'water_brackets': [
+        [0,0,0,0,0,0,0],
+        [0,6,6,6,6,6,0],
+        [0,6,0,0,0,6,0],
+        [0,6,0,6,0,6,0],
+        [0,0,0,6,0,0,0],
+        [0,0,0,6,0,0,0],
+        [0,0,0,6,0,0,0],
+        [0,0,0,6,0,0,0],
+        [0,6,0,6,0,6,0],
+        [0,6,0,0,0,6,0],
+        [0,6,6,6,6,6,0],
+        [0,0,0,0,0,0,0]
+    ],
+
+    'water_path': [
+        [6,6,6,0,6,6,6],
+        [6,0,0,0,0,0,6],
+        [6,0,6,6,6,6,6],
+        [6,0,0,0,0,0,6],
+        [6,6,6,6,6,0,6],
+        [0,0,0,0,6,0,0],
+        [0,0,6,0,0,0,0],
+        [6,0,6,6,6,6,6],
+        [6,0,0,0,0,0,6],
+        [6,6,6,6,6,0,6],
+        [6,0,0,0,0,0,6],
+        [6,6,6,0,6,6,6]
+    ],
+
+    'sand': [
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4],
+        [4,4,4,4,4,4,4]
+    ],
+
+    'diagonal': [
+        [0,0,0,0,0,0,1],
+        [0,1,0,0,0,1,0],
+        [1,0,0,0,1,0,0],
+        [0,0,0,1,0,0,0],
+        [0,0,1,0,0,0,0],
+        [0,1,0,0,0,0,0],
+        [0,0,0,0,0,1,0],
+        [0,0,0,0,1,0,0],
+        [0,0,0,1,0,0,0],
+        [0,0,1,0,0,0,1],
+        [0,1,0,0,0,1,0],
+        [1,0,0,0,0,0,0]
+    ]
+};
+
+module.exports = Room;

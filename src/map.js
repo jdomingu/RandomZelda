@@ -1,4 +1,6 @@
-RZ.Map = function (dungeon, canvas) {
+var Coord = require('./coord');
+
+var Maps = function (dungeon, canvas) {
     this.context = canvas.getContext('2d');
 
     // Declare static settings
@@ -19,7 +21,7 @@ RZ.Map = function (dungeon, canvas) {
     this.LOCKED_DOOR_COLOR = '#FFE200';
 };
 
-RZ.Map.prototype = {
+Maps.prototype = {
 
     draw: function (grid, existingRooms) {
         var existingLen = existingRooms.length,
@@ -83,13 +85,13 @@ RZ.Map.prototype = {
         for (doorDir in roomDoors) {
 
             if (doorDir === 'up') {
-                coord = new RZ.Coord(doorCoords[0] + bigDelta, doorCoords[1]);
+                coord = new Coord(doorCoords[0] + bigDelta, doorCoords[1]);
             } else if (doorDir === 'down') {
-                coord = new RZ.Coord(doorCoords[0] + bigDelta, doorCoords[1] + smallDelta);
+                coord = new Coord(doorCoords[0] + bigDelta, doorCoords[1] + smallDelta);
             } else if (doorDir === 'left') {
-                coord = new RZ.Coord(doorCoords[0], doorCoords[1] + bigDelta);
+                coord = new Coord(doorCoords[0], doorCoords[1] + bigDelta);
             } else if (doorDir === 'right') {
-                coord = new RZ.Coord(doorCoords[0] + smallDelta, doorCoords[1] + bigDelta);
+                coord = new Coord(doorCoords[0] + smallDelta, doorCoords[1] + bigDelta);
             }
 
             if (roomDoors[doorDir] === 'locked') {
@@ -114,3 +116,5 @@ RZ.Map.prototype = {
         ];
     }
 };
+
+module.exports = Maps;

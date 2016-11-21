@@ -1,4 +1,4 @@
-RZ.Screen = {
+var Screen = {
     init: function (id) {
         var mainDiv = document.getElementById(id), // The div serves as a container
             headsUpDisplayHeight = 192,            // that hides overflow
@@ -65,15 +65,15 @@ RZ.Screen = {
 
     mapTransition: function (direction) { // When the map moves into view, the bg and main move out
         if (direction === 'coming') {
-            RZ.Screen.transition(RZ.Screen.map, RZ.Screen.map.style.top, 0, 'top');
-            RZ.Screen.transition(RZ.Screen.fg, RZ.Screen.fg.style.top, RZ.Screen.map.height, 'top');
-            RZ.Screen.transition(RZ.Screen.main, RZ.Screen.main.style.top, RZ.Screen.map.height, 'top');
-            RZ.Screen.transition(RZ.Screen.bg, RZ.Screen.bg.style.top, RZ.Screen.map.height, 'top');
+            Screen.transition(Screen.map, Screen.map.style.top, 0, 'top');
+            Screen.transition(Screen.fg, Screen.fg.style.top, Screen.map.height, 'top');
+            Screen.transition(Screen.main, Screen.main.style.top, Screen.map.height, 'top');
+            Screen.transition(Screen.bg, Screen.bg.style.top, Screen.map.height, 'top');
         } else if (direction === 'going') {
-            RZ.Screen.transition(RZ.Screen.map, RZ.Screen.map.style.top, RZ.Screen.mapStartTop, 'top');
-            RZ.Screen.transition(RZ.Screen.fg, RZ.Screen.fg.style.top, RZ.Screen.roomStartTop, 'top');
-            RZ.Screen.transition(RZ.Screen.main, RZ.Screen.main.style.top, RZ.Screen.roomStartTop, 'top');
-            RZ.Screen.transition(RZ.Screen.bg, RZ.Screen.bg.style.top, RZ.Screen.roomStartTop, 'top');
+            Screen.transition(Screen.map, Screen.map.style.top, Screen.mapStartTop, 'top');
+            Screen.transition(Screen.fg, Screen.fg.style.top, Screen.roomStartTop, 'top');
+            Screen.transition(Screen.main, Screen.main.style.top, Screen.roomStartTop, 'top');
+            Screen.transition(Screen.bg, Screen.bg.style.top, Screen.roomStartTop, 'top');
         }
     },
 
@@ -82,20 +82,24 @@ RZ.Screen = {
             fgContext = this.fg.getContext('2d');
 
         // Don't let the player move while you reposition him and prepare the next room
-        RZ.Game.locked = true;
-        RZ.Game.player.x = nextPlayerX;
-        RZ.Game.player.y = nextPlayerY;
+        Game.locked = true;
+        Game.player.x = nextPlayerX;
+        Game.player.y = nextPlayerY;
 
         // Prepare the next room
-        RZ.Game.currentRoom = RZ.Game.dungeon.grid[nextRoomX][nextRoomY];
-        RZ.Game.currentRoom.accessibleCoords = RZ.Game.currentRoom.generateAccessibleCoords();
+        Game.currentRoom = Game.dungeon.grid[nextRoomX][nextRoomY];
+        Game.currentRoom.accessibleCoords = Game.currentRoom.generateAccessibleCoords();
 
         // Clear the canvas before drawing
         bgContext.clearRect(0, 0, this.bg.width, this.bg.height);
         fgContext.clearRect(0, 0, this.fg.width, this.fg.height);
+<<<<<<< HEAD
+        Game.currentRoom.draw(Screen.bg, Screen.fg);
+=======
         RZ.Game.currentRoom.draw(RZ.Screen.bg, RZ.Screen.fg);
+>>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
 
-        RZ.Game.locked = false;
+        Game.locked = false;
     },
 
     transition: function (canvas, start, end, side) {
@@ -104,7 +108,7 @@ RZ.Screen = {
 
         if (Math.abs(diff) < dist) {
             canvas.style[side] = end;
-			RZ.Game.locked = false; // Accept player input when the transition ends
+			Game.locked = false; // Accept player input when the transition ends
             return;
         } else if (diff < 0) {
             canvas.style[side] = parseInt(start) + dist;
@@ -113,7 +117,13 @@ RZ.Screen = {
         }
 
         setTimeout(function () {
+<<<<<<< HEAD
+            Screen.transition(canvas, canvas.style[side], end, side);
+=======
             RZ.Screen.transition(canvas, canvas.style[side], end, side);
+>>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
         }, 10);
     }
 };
+
+module.exports = Screen;

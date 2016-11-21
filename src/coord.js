@@ -1,15 +1,17 @@
-RZ.Coord = function(x, y) {
+var Coord = function(x, y) {
     this.x = x;
     this.y = y;
 };
 
-RZ.Coord.prototype = {
+Coord.prototype = {
     getAdjacentCoords: function () {
         return [
-            new RZ.Coord(this.x + 1, this.y),
-            new RZ.Coord(this.x - 1, this.y),
-            new RZ.Coord(this.x, this.y + 1),
-            new RZ.Coord(this.x, this.y - 1)
+            new Coord(this.x + 1, this.y),
+            new Coord(this.x - 1, this.y),
+            new Coord(this.x, this.y + 1),
+            new Coord(this.x, this.y - 1)
         ];
     }
 };
+
+module.exports = Coord;

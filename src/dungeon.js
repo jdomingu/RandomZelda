@@ -1,4 +1,7 @@
-RZ.Dungeon = function(width, height, seed) {
+var Room = require('./room');
+var Coord = require('./coord');
+
+var Dungeon = function(width, height, seed) {
     // Declare static settings
     this.WIDTH = width / 2;
     this.HEIGHT = height / 3;
@@ -14,14 +17,18 @@ RZ.Dungeon = function(width, height, seed) {
 
     // Generate the grid
     this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
+<<<<<<< HEAD
+    this.startRoom = this.grid[this.START_X][this.START_Y] = new Room(this.START_X, this.START_Y);
+=======
     this.startRoom = this.grid[this.START_X][this.START_Y] = new RZ.Room(this.START_X, this.START_Y);
+>>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
     this.startRoom.roomLayout = 'entrance';
 
     // For testing, use numbers generated from a seed value instead of
     // from Math.random so that you can get repeatable results
     var seedVal = (undefined === seed) ? Date.now() : seed;
     this.random = Math.seed(seedVal);
-    this.initialPosition = new RZ.Coord(this.START_X, this.START_Y);
+    this.initialPosition = new Coord(this.START_X, this.START_Y);
     this.startingCoords = [this.initialPosition];
     this.edgeCoords = [this.initialPosition];
     this.color = this.getRandomColor();
@@ -40,7 +47,7 @@ Math.seed = function(s) {
     };
 };
 
-RZ.Dungeon.prototype = {
+Dungeon.prototype = {
     generate: function() {
         var that = this;
 
@@ -93,7 +100,7 @@ RZ.Dungeon.prototype = {
             // If you get boxed in on a branch, return the existing rooms instead of jumping to
             // another random room and continuing. This prevents discontinuous branches.
             if (nextRoomCoord !== coords) {
-                grid[nextRoomCoord.x][nextRoomCoord.y] = new RZ.Room(nextRoomCoord.x, nextRoomCoord.y);
+                grid[nextRoomCoord.x][nextRoomCoord.y] = new Room(nextRoomCoord.x, nextRoomCoord.y);
                 this.setRandomLayout(grid[nextRoomCoord.x][nextRoomCoord.y]);
                 existingRoomCoords.push(nextRoomCoord);
                 this.edgeCoords.push(nextRoomCoord);
@@ -253,7 +260,7 @@ RZ.Dungeon.prototype = {
             } else {
                 return this.makeBossRoom(grid, existingRoomCoords, branches.slice(1, branches.length));
             }
-    }, 
+    },
 
     getDoorDirection: function (roomFrom, roomTo) {
         if (roomFrom.x > roomTo.x && roomFrom.y === roomTo.y) {
@@ -270,7 +277,7 @@ RZ.Dungeon.prototype = {
     },
 
     getRandomColor: function () {
-        var colors = ['#ffff00', '#ffffff', '#ff0000', '#00ff00', 
+        var colors = ['#ffff00', '#ffffff', '#ff0000', '#00ff00',
                       '#0000ff', '#00ffff', '#ffff00'];
 
         return colors[Math.floor(this.random() * colors.length)];
@@ -282,7 +289,7 @@ RZ.Dungeon.prototype = {
 
     getRandomCoords: function (grid, existingRoomCoords, edgeCoords, coords, jumpsAllowed) {
     // Get the four coordinates adjacent to a room, check that they are in the bounds of the map,
-    // and filter out the coordinates that are already rooms. 
+    // and filter out the coordinates that are already rooms.
         var adjCoords = coords.getAdjacentCoords(),
             validCoords = this.getValidCoords(adjCoords),
             newCoords = this.getNewCoords(grid, validCoords);
@@ -352,3 +359,5 @@ RZ.Dungeon.prototype = {
         return (newCoords.length > 0);
     }
 };
+
+module.exports = Dungeon;

@@ -1,4 +1,4 @@
-RZ.Assets = {
+var Assets = {
     init: function (callback) {
         var img = [];
         this.img = img;
@@ -174,3 +174,5 @@ RZ.Assets = {
         },
     }
 };
+
+module.exports = Assets;

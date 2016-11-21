@@ -1,17 +1,24 @@
-RZ.Keyboard = {
+var Screen = require('./screen');
+
+var Keyboard = {
     init: function () {
         window.onkeydown = function(e) {
-          RZ.Keyboard.states[e.keyCode] = true;
+          Keyboard.states[e.keyCode] = true;
         };
 
         window.onkeyup = function(e) {
-          RZ.Keyboard.states[e.keyCode] = false;
-          RZ.Keyboard.hasFired[e.keyCode] = false;
+          Keyboard.states[e.keyCode] = false;
+          Keyboard.hasFired[e.keyCode] = false;
         };
 
         var mapKey = 'SHIFT', // Pressing shift should only toggle
+<<<<<<< HEAD
+            keyCode = Keyboard.codes[mapKey]; // the map once
+        Keyboard.hasFired[keyCode] = false;
+=======
             keyCode = RZ.Keyboard.codes[mapKey]; // the map once
         RZ.Keyboard.hasFired[keyCode] = false;
+>>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
     },
 
     states: {},
@@ -27,8 +34,8 @@ RZ.Keyboard = {
     },
 
     isDown: function (key) {
-      var keyCode = RZ.Keyboard.codes[key];
-      return RZ.Keyboard.states[keyCode] === true;
+      var keyCode = Keyboard.codes[key];
+      return Keyboard.states[keyCode] === true;
     },
 
     areMovementKeysDown: function () {
@@ -47,23 +54,31 @@ RZ.Keyboard = {
 
     checkMapToggle: function () {
         var mapKey = 'SHIFT',
+<<<<<<< HEAD
+            keyCode = Keyboard.codes[mapKey];
+
+        if (Keyboard.isDown(mapKey)) {
+=======
             keyCode = RZ.Keyboard.codes[mapKey];
 
         if (RZ.Keyboard.isDown(mapKey)) {
+>>>>>>> 8ca530aae7a43785a839f9220a844fa4cb86ed97
 
-            if (RZ.Keyboard.hasFired[keyCode] === false) {
-                RZ.Keyboard.hasFired[keyCode] = true;
-				RZ.Game.locked = true;
+            if (Keyboard.hasFired[keyCode] === false) {
+                Keyboard.hasFired[keyCode] = true;
+				Game.locked = true;
 
-                if (RZ.Game.paused === false) {
-                    RZ.Game.paused = true;
-                    RZ.Screen.mapTransition('coming');
+                if (Game.paused === false) {
+                    Game.paused = true;
+                    Screen.mapTransition('coming');
                 } else {
-                    RZ.Game.paused = false;
-                    RZ.Screen.mapTransition('going');
+                    Game.paused = false;
+                    Screen.mapTransition('going');
                 }
             }
         }
     }
 
 };
+
+module.exports = Keyboard;
