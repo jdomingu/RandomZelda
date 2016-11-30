@@ -1,22 +1,18 @@
 var Room = require('./room');
 var Coord = require('./coord');
 
-var Dungeon = function(width, height, seed) {
+var Dungeon = function(cols, rows, num_rooms, seed) {
     // Declare static settings
-    this.WIDTH = width / 2;
-    this.HEIGHT = height / 3;
-    this.ROOM_SIZE = 24;
-    this.NUM_ROOMS = 25; // The map must be a minimum of 6 rooms
-    this.NUM_SEED_ROOMS = Math.ceil(this.NUM_ROOMS / 2) - 1;
-    this.NUM_BRANCH_ROOMS = Math.floor(this.NUM_ROOMS / 2);
-    this.NUM_ROWS = Math.floor(this.HEIGHT / this.ROOM_SIZE);
-    this.NUM_COLUMNS = Math.floor(this.WIDTH / this.ROOM_SIZE);
-    this.MAX_BRANCH_LEN = Math.floor(this.NUM_ROOMS / 6);
-    this.START_X = Math.floor(this.NUM_COLUMNS / 2);
-    this.START_Y = Math.floor(this.NUM_ROWS / 2);
+    this.NUM_COLUMNS = cols;
+    this.NUM_ROWS = rows;
+    this.NUM_SEED_ROOMS = Math.ceil(num_rooms / 2) - 1;
+    this.NUM_BRANCH_ROOMS = Math.floor(num_rooms / 2);
+    this.MAX_BRANCH_LEN = Math.floor(num_rooms / 6);
+    this.START_X = Math.floor(cols / 2);
+    this.START_Y = Math.floor(rows / 2);
 
     // Generate the grid
-    this.grid = this.make2DGrid(this.NUM_COLUMNS, this.NUM_ROWS);
+    this.grid = this.make2DGrid(cols, rows);
     this.startRoom = this.grid[this.START_X][this.START_Y] = new Room(this.START_X, this.START_Y);
     this.startRoom.roomLayout = 'entrance';
 
@@ -32,6 +28,12 @@ var Dungeon = function(width, height, seed) {
     // Keep track of rooms on the edge that haven't been boxed in
     // so that you can generate branches on those rooms
     this.branches = [];
+
+    // Basic validation. Going outside of these bounds increases the chance of blowing the call stack."
+    if (num_rooms < 6 || num_rooms > ((rows * cols) / 2)) {
+        throw new Error("The number of rooms is out of bounds.");
+    }
+
 };
 
 // Patch the Math module to add a seeded PRNG

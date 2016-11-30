@@ -8,12 +8,19 @@ var Screen = require('./screen');
 
 var Game = {
     init: function (id, seed) {
-        var rooms, map;
-        Screen.init(id); // Set up canvases
+        var rooms, map, width, height, rows, cols,
+            room_size = 24,
+            num_rooms = 25;
 
-        this.dungeon = new Dungeon(Screen.map.width, Screen.map.height, seed); // Create dungeon object
+        Screen.init(id); // Set up canvases
+        width = Screen.map.width / 2;
+        height = Screen.map.height / 3;
+        rows = Math.floor(height / room_size);
+        cols = Math.floor(width / room_size);
+
+        this.dungeon = new Dungeon(cols, rows, num_rooms, seed); // Create dungeon object
         rooms = this.dungeon.generate(); // Generate random dungeon
-        map = new Maps(this.dungeon, Screen.map);
+        map = new Maps(room_size, width, height, Screen.map);
         this.currentRoom = this.dungeon.startRoom;
 		this.currentRoom.accessibleCoords = this.currentRoom.generateAccessibleCoords();
         this.color = this.dungeon.color;

@@ -1,20 +1,24 @@
 {
-    "name": "RandomZelda",
-    "version": "0.1.0",
-    "private": true,
-    "description": "A randomly-generated dungeon game inspired by Legend of Zelda",
-    "dependencies": {},
-    "devDependencies": {
-        "faucet": "0.0.1",
-        "jshint": "^2.9.4",
-        "jshint-loader": "^0.8.3",
-        "tape": "^4.6.2",
-        "webpack": "^1.13.3",
-        "webpack-dev-server": "^1.16.2"
-    },
-    "scripts": {
-        "start": "webpack",
-        "watch": "webpack --watch",
-        "test": "node test/*.js | faucet"
-    }
+  "name": "RandomZelda",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A randomly-generated dungeon game inspired by Legend of Zelda",
+  "dependencies": {},
+  "devDependencies": {
+    "faucet": "0.0.1",
+    "http-server": "^0.9.0",
+    "jshint": "^2.9.4",
+    "jshint-loader": "^0.8.3",
+    "npm-run-all": "^3.1.1",
+    "tape": "^4.6.2",
+    "webpack": "^1.13.3",
+    "webpack-dev-server": "^1.16.2"
+  },
+  "scripts": {
+    "start": "webpack",
+    "watch": "webpack --watch",
+    "http-server": "node node_modules/http-server/bin/http-server -p 8888 -c-1",
+    "serve": "npm-run-all --parallel http-server watch",
+    "test": "node test/*.js | faucet"
+  }
 }

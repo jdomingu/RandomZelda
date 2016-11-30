@@ -1,14 +1,14 @@
 var Coord = require('./coord');
 
-var Maps = function (dungeon, canvas) {
+var Maps = function (room_size, width, height, canvas) {
     this.context = canvas.getContext('2d');
 
     // Declare static settings
-    this.ROOM_SIZE = dungeon.ROOM_SIZE;
-    this.INNER_ROOM_SIZE = this.ROOM_SIZE / 2;
+    this.ROOM_SIZE = room_size;
+    this.INNER_ROOM_SIZE = room_size / 2;
     this.PADDING = this.INNER_ROOM_SIZE;
-    this.MAP_WIDTH = dungeon.WIDTH;
-    this.MAP_HEIGHT = dungeon.HEIGHT;
+    this.MAP_WIDTH = width;
+    this.MAP_HEIGHT = height;
     this.CANVAS_WIDTH = canvas.clientWidth;
     this.CANVAS_HEIGHT = canvas.clientHeight;
     this.WIDTH_OFFSET = (this.CANVAS_WIDTH - this.MAP_WIDTH) / 2;
